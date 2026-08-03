@@ -1,0 +1,1160 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Дневник блогера</title>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+</head>
+<body>
+<script>
+window.storage = {
+  async get(key, shared){
+    const res = await fetch('/api/storage/' + encodeURIComponent(key));
+    if(res.status === 404){ throw new Error('not found'); }
+    const data = await res.json();
+    return { key, value: data.value, shared: !!shared };
+  },
+  async set(key, value, shared){
+    const res = await fetch('/api/storage/' + encodeURIComponent(key), {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ value })
+    });
+    const data = await res.json();
+    return { key, value: data.value, shared: !!shared };
+  },
+  async delete(key, shared){
+    await fetch('/api/storage/' + encodeURIComponent(key), { method: 'DELETE' });
+    return { key, deleted: true, shared: !!shared };
+  },
+  async list(prefix, shared){
+    const res = await fetch('/api/storage-list' + (prefix ? ('?prefix=' + encodeURIComponent(prefix)) : ''));
+    const data = await res.json();
+    return { keys: data.keys, prefix, shared: !!shared };
+  }
+};
+if(window.Telegram && window.Telegram.WebApp){
+  window.Telegram.WebApp.ready();
+  window.Telegram.WebApp.expand();
+}
+</script>
+
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Unbounded:wght@400;600;700;800;900&family=Inter:wght@400;500;600;700&display=swap');
+
+:root{
+  --bg:#FBF1E2;
+  --card:#FFFFFF;
+  --ink:#2B1B14;
+  --ink-soft:#7A6455;
+  --line:#F0DCC0;
+  --plum:#E8551F;   --plum-soft:#FDE3D3;
+  --gold:#E8447A;   --gold-soft:#FBDCE8;
+  --teal:#6B3B8A;   --teal-soft:#E9DBF3;
+  --slate:#D9971F;  --slate-soft:#FBEFD3;
+  --muted:#A68F7D;  --muted-soft:#F5EBDD;
+}
+*{box-sizing:border-box;}
+.hub{font-family:'Inter',sans-serif;color:var(--ink);background:var(--bg);padding:0 0 40px;max-width:960px;margin:0 auto;}
+.hub h1,.hub h2,.hub h3{font-family:'Unbounded',sans-serif;font-weight:700;margin:0;}
+.topbar{padding:28px 20px 0;position:relative;overflow:visible;}
+.topbar::before{content:'';position:absolute;top:-30px;right:-40px;width:220px;height:220px;background:radial-gradient(circle, var(--gold-soft) 0%, transparent 72%);z-index:0;pointer-events:none;}
+.topbar::after{content:'';position:absolute;top:10px;left:-30px;width:140px;height:140px;background:radial-gradient(circle, var(--teal-soft) 0%, transparent 72%);z-index:0;pointer-events:none;}
+.topbar > *{position:relative;z-index:1;}
+.eyebrow{font-size:12px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--gold);margin-bottom:8px;}
+.topbar h1{font-size:36px;letter-spacing:-.01em;text-transform:uppercase;color:var(--plum);line-height:1.08;}
+.stripe{display:flex;height:8px;margin:20px 0 0;border-radius:5px;overflow:hidden;}
+.stripe span{flex:1;}
+.stripe .s1{background:var(--plum);} .stripe .s2{background:var(--gold);}
+.stripe .s3{background:var(--teal);} .stripe .s4{background:var(--slate);}
+
+.motivation-strip{margin:14px 20px 0;font-size:13px;font-weight:600;color:var(--ink-soft);background:var(--card);border:2px solid var(--line);border-radius:999px;padding:10px 18px;}
+.week-calendar{margin:12px 20px 0;display:flex;gap:8px;overflow-x:auto;padding-bottom:4px;}
+.week-day{background:var(--card);border:2px solid var(--line);border-radius:16px;padding:10px 10px 8px;min-width:122px;flex:1;font-size:11.5px;}
+.week-day.today{border-color:var(--plum);box-shadow:0 0 0 1px var(--plum);}
+.week-day-head{font-family:'Inter',sans-serif;font-weight:600;font-size:12px;color:var(--ink);margin-bottom:6px;}
+.week-day.today .week-day-head{color:var(--plum);}
+.week-sec{margin-bottom:6px;}
+.week-sec-label{font-size:9.5px;text-transform:uppercase;letter-spacing:.04em;color:var(--muted);margin-bottom:2px;}
+.week-item{font-size:11px;line-height:1.35;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.week-item.done{color:var(--muted);text-decoration:line-through;}
+.week-item-more{font-size:10px;color:var(--muted);}
+.week-empty{font-size:11px;color:var(--muted);}
+
+.tabs{display:flex;gap:8px;padding:18px 20px 10px;overflow-x:auto;}
+.tab-btn{font-family:'Inter',sans-serif;font-size:13px;font-weight:600;color:var(--ink-soft);background:var(--card);border:2px solid var(--line);border-radius:999px;padding:9px 16px;cursor:pointer;white-space:nowrap;transition:all .15s;}
+.tab-btn:hover{color:var(--ink);border-color:var(--plum);}
+.tab-btn.active{color:#fff;background:var(--plum);border-color:var(--plum);}
+
+main{padding:24px 20px 0;}
+.tab-panel{display:none;}
+.tab-panel.active{display:block;}
+
+/* Core tab */
+.core-edit-bar{display:flex;justify-content:flex-end;margin-bottom:10px;}
+#core-content[contenteditable=true]{outline:2px dashed var(--slate);outline-offset:8px;border-radius:8px;}
+.lede{font-family:'Inter',sans-serif;font-style:italic;font-weight:500;font-size:17px;line-height:1.6;color:var(--ink-soft);max-width:640px;margin:0 0 28px;}
+.core-block{margin-bottom:32px;}
+#tab-core{position:relative;overflow:visible;}
+#tab-core::before{content:'';position:absolute;top:-10px;right:-30px;width:260px;height:260px;background:radial-gradient(circle, var(--gold-soft) 0%, transparent 70%);z-index:0;pointer-events:none;}
+#tab-core::after{content:'';position:absolute;top:420px;left:-50px;width:220px;height:220px;background:radial-gradient(circle, var(--teal-soft) 0%, transparent 70%);z-index:0;pointer-events:none;}
+.core-edit-bar,#core-content{position:relative;z-index:1;}
+.core-block h2{font-size:20px;margin-bottom:14px;}
+.core-block:nth-of-type(1) h2::before{content:'✳';color:var(--plum);margin-right:8px;display:inline-block;}
+.core-block:nth-of-type(2) h2::before{content:'✦';color:var(--gold);margin-right:8px;display:inline-block;}
+.core-block:nth-of-type(3) h2::before{content:'✿';color:var(--teal);margin-right:8px;display:inline-block;}
+.rubric-card{background:var(--card);border-left:6px solid var(--c);border-radius:0 18px 18px 0;padding:16px 18px;margin-bottom:12px;}
+.rubric-card h3{font-size:17px;margin-bottom:6px;}
+.rubric-card h3::before{content:'';display:inline-block;width:10px;height:10px;border-radius:50%;background:var(--c);margin-right:9px;vertical-align:middle;}
+.rubric-card .core-meaning{font-family:'Inter',sans-serif;font-style:italic;font-weight:500;font-size:14px;color:var(--ink-soft);margin-bottom:8px;}
+.rubric-card ul{margin:0;padding-left:18px;font-size:13.5px;line-height:1.65;color:var(--ink);}
+.tone-grid,.aud-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.mini-card{background:var(--card);border:2px solid var(--line);border-radius:16px;padding:14px 16px;}
+.mini-card h4{font-size:14px;font-weight:500;margin:0 0 4px;font-family:'Inter',sans-serif;}
+.mini-card p{font-size:13px;color:var(--ink-soft);margin:0;line-height:1.5;}
+@media(max-width:560px){.tone-grid,.aud-grid{grid-template-columns:1fr;}}
+
+/* Forms / controls */
+.add-row{display:flex;gap:8px;margin-bottom:18px;flex-wrap:wrap;}
+input[type=text],input[type=date],input[type=number],select,textarea{
+  font-family:'Inter',sans-serif;font-size:14px;color:var(--ink);
+  border:1px solid var(--line);border-radius:8px;padding:9px 12px;background:var(--card);
+}
+textarea{width:100%;resize:vertical;min-height:64px;margin-top:8px;}
+.btn{font-family:'Inter',sans-serif;font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:.03em;background:var(--plum);color:#fff;border:none;border-radius:999px;padding:10px 20px;cursor:pointer;}
+.btn:hover{opacity:.88;}
+.btn-ghost{background:none;color:var(--ink);border:2px solid var(--line);border-radius:999px;padding:9px 18px;cursor:pointer;font-family:'Inter',sans-serif;font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:.03em;}
+.del{background:none;border:none;color:var(--muted);cursor:pointer;font-size:14px;line-height:1;padding:2px 6px;}
+.del:hover{color:var(--plum);}
+.empty{color:var(--muted);font-size:14px;padding:30px 0;text-align:center;}
+
+/* Checklist */
+.check-item{display:flex;align-items:center;gap:10px;padding:11px 4px;border-bottom:1px solid var(--line);flex-wrap:wrap;}
+.check-item input[type=checkbox]{width:17px;height:17px;accent-color:var(--plum);flex-shrink:0;}
+.check-item .check-text{flex:1;font-size:14px;min-width:160px;}
+.check-item.done .check-text{color:var(--muted);text-decoration:line-through;}
+.check-item .check-date{font-size:12px;color:var(--muted);white-space:nowrap;}
+.prio{font-size:11px;font-weight:500;padding:2px 8px;border-radius:20px;white-space:nowrap;}
+.prio-high{background:var(--plum-soft);color:var(--plum);}
+.prio-med{background:var(--gold-soft);color:var(--gold);}
+.prio-low{background:var(--muted-soft);color:var(--muted);}
+.star{cursor:pointer;font-size:17px;color:var(--muted);user-select:none;flex-shrink:0;line-height:1;}
+.star.active{color:var(--slate);}
+.star-btn{background:none;border:1px solid var(--line);border-radius:8px;font-size:15px;padding:8px 10px;cursor:pointer;color:var(--muted);}
+.star-btn.active{color:var(--slate);border-color:var(--slate);}
+.check-item.starred{background:var(--slate-soft);border-radius:12px;padding-left:8px;padding-right:8px;}
+.edit-row{display:flex;flex-wrap:wrap;gap:6px;padding:9px 4px;border-bottom:1px solid var(--line);align-items:center;}
+.edit-row input,.edit-row select{font-size:13px;padding:6px 9px;}
+
+/* Ideas — creative corner */
+#tab-ideas{position:relative;overflow:visible;}
+#tab-ideas::before{content:'';position:absolute;top:-20px;right:-20px;width:200px;height:200px;background:radial-gradient(circle, var(--gold-soft) 0%, transparent 70%);z-index:0;pointer-events:none;}
+#tab-ideas::after{content:'';position:absolute;top:120px;left:-40px;width:180px;height:180px;background:radial-gradient(circle, var(--teal-soft) 0%, transparent 70%);z-index:0;pointer-events:none;}
+.idea-add{background:var(--card);border-radius:20px;padding:18px;border:2px dashed var(--gold);position:relative;z-index:1;}
+.idea-add textarea{font-family:'Inter',sans-serif;font-style:italic;font-weight:500;font-size:15.5px;margin-top:0;}
+.idea-add-row{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;margin-top:8px;}
+.rubric-dot{font-size:11px;padding:4px 9px;border-radius:20px;cursor:pointer;margin-right:6px;margin-bottom:6px;display:inline-block;opacity:.5;transition:opacity .15s;}
+.rubric-dot.active{opacity:1;outline:2px solid rgba(42,32,41,.15);}
+.idea-board{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:18px;margin-top:22px;}
+.idea-card{background:var(--card);border-radius:18px;padding:14px 14px 12px;box-shadow:0 4px 14px rgba(43,27,20,.09);position:relative;}
+.idea-card:nth-child(4n+1){transform:rotate(-0.6deg);}
+.idea-card:nth-child(4n+2){transform:rotate(0.5deg);}
+.idea-card:nth-child(4n+3){transform:rotate(-0.3deg);}
+.idea-card:nth-child(4n){transform:rotate(0.7deg);}
+.idea-card textarea{border:none;background:none;padding:0;min-height:76px;font-family:'Inter',sans-serif;font-style:italic;font-size:14px;line-height:1.55;resize:vertical;width:100%;}
+.idea-card textarea:focus{outline:none;}
+.idea-dot{position:absolute;top:12px;right:12px;width:15px;height:15px;border-radius:50%;cursor:pointer;border:2px solid rgba(0,0,0,.06);}
+.idea-actions{display:flex;justify-content:space-between;align-items:center;margin-top:8px;}
+.idea-promote-panel{margin-top:10px;padding-top:10px;border-top:1px dashed var(--line);}
+.idea-promote-panel .edit-fields{grid-template-columns:1fr 1fr;}
+
+/* Content plan / work / shoot plan */
+.plan-form{display:grid;grid-template-columns:2fr 1.2fr 1fr auto;gap:8px;margin-bottom:10px;}
+@media(max-width:700px){.plan-form{grid-template-columns:1fr 1fr;}}
+.platform-checks{display:flex;gap:10px;align-items:center;flex-wrap:wrap;font-size:13px;margin-bottom:16px;}
+.platform-checks label{display:flex;align-items:center;gap:4px;cursor:pointer;}
+.balance-box{background:var(--card);border:2px solid var(--line);border-radius:16px;padding:12px 14px;margin-bottom:16px;}
+.balance-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;font-size:13px;color:var(--ink-soft);}
+.balance-head select{font-size:12.5px;padding:4px 8px;}
+.balance-row{display:flex;gap:8px;flex-wrap:wrap;}
+.balance-chip{font-size:12px;padding:5px 10px;border-radius:8px;flex:1;min-width:120px;}
+.balance-warn{font-size:12px;font-weight:600;color:var(--plum);margin-top:8px;}
+.filter-bar{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px;}
+.filter-bar input,.filter-bar select{font-size:13px;padding:7px 10px;}
+.filter-bar input[type=text]{flex:1;min-width:150px;}
+.section-sub{font-size:12px;text-transform:uppercase;letter-spacing:.04em;color:var(--muted);margin:18px 0 8px;}
+.item-card{background:var(--card);border:2px solid var(--line);border-radius:16px;padding:14px 16px;margin-bottom:10px;}
+.item-top{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:6px;}
+.tag{font-size:11.5px;font-weight:500;padding:3px 9px;border-radius:20px;}
+.item-topic{font-size:15px;font-weight:500;flex:1;min-width:160px;}
+.item-meta{font-size:12.5px;color:var(--muted);}
+.plat-tag{font-size:10.5px;padding:2px 7px;border-radius:12px;background:var(--muted-soft);color:var(--ink-soft);margin-right:3px;}
+.status-pill{font-size:11.5px;padding:3px 9px;border-radius:20px;background:var(--muted-soft);color:var(--ink-soft);margin-left:auto;}
+.stage-row{display:flex;gap:16px;margin-top:10px;flex-wrap:wrap;}
+.stage-row label{display:flex;align-items:center;gap:6px;font-size:13px;color:var(--ink-soft);cursor:pointer;}
+.stage-row input[type=checkbox]{width:16px;height:16px;}
+.edit-fields{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px;margin-bottom:8px;}
+@media(max-width:600px){.edit-fields{grid-template-columns:1fr;}}
+.shoot-date-row{display:flex;gap:14px;align-items:center;margin-top:10px;flex-wrap:wrap;font-size:12.5px;color:var(--ink-soft);}
+.shoot-date-row label{display:flex;align-items:center;gap:6px;cursor:pointer;}
+.shoot-tasks{margin-top:10px;}
+.shoot-task{display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--line);font-size:13px;}
+.shoot-task input[type=checkbox]{width:15px;height:15px;accent-color:var(--teal);flex-shrink:0;}
+.shoot-task.done .shoot-desc{color:var(--muted);text-decoration:line-through;}
+.shoot-type-tag{font-size:10.5px;padding:2px 8px;border-radius:10px;background:var(--slate-soft);color:var(--slate);white-space:nowrap;flex-shrink:0;}
+.shoot-desc{flex:1;}
+.shoot-add-row{display:flex;gap:6px;margin-top:10px;flex-wrap:wrap;}
+.shoot-add-row select{font-size:12.5px;padding:6px 8px;}
+.shoot-add-row input[type=text]{flex:1;min-width:150px;font-size:12.5px;padding:6px 8px;}
+
+/* Analytics */
+table{width:100%;border-collapse:collapse;font-size:13.5px;}
+th{text-align:left;font-weight:500;color:var(--muted);font-size:12px;text-transform:uppercase;letter-spacing:.03em;padding:8px 10px;border-bottom:1px solid var(--line);}
+td{padding:10px;border-bottom:1px solid var(--line);}
+.an-form{display:grid;grid-template-columns:1fr 1fr 1fr 1fr 1.4fr auto;gap:8px;margin-bottom:20px;}
+@media(max-width:760px){.an-form{grid-template-columns:1fr 1fr;}}
+.delta{font-size:11.5px;font-weight:600;margin-left:4px;}
+.delta.up{color:var(--teal);}
+.delta.down{color:var(--plum);}
+</style>
+
+<div class="hub">
+  <div class="topbar">
+    <svg class="deco-star" viewBox="0 0 24 24" width="26" height="26" fill="none" xmlns="http://www.w3.org/2000/svg" style="position:absolute;top:26px;right:24px;z-index:1;">
+      <path d="M12 2 L14 9 L21 9 L15.5 13.5 L17.5 21 L12 16.5 L6.5 21 L8.5 13.5 L3 9 L10 9 Z" fill="var(--gold)"/>
+    </svg>
+    <div class="eyebrow">Твой личный помощник</div>
+    <h1>Дневник блогера</h1>
+    <div class="stripe"><span class="s1"></span><span class="s2"></span><span class="s3"></span><span class="s4"></span></div>
+  </div>
+
+  <div class="motivation-strip" id="motivation-strip"></div>
+  <div class="week-calendar" id="week-calendar"></div>
+
+  <nav class="tabs">
+    <button class="tab-btn active" data-tab="core">Ядро</button>
+    <button class="tab-btn" data-tab="checklist">Чек-лист</button>
+    <button class="tab-btn" data-tab="ideas">Идеи</button>
+    <button class="tab-btn" data-tab="plan">Контент-план</button>
+    <button class="tab-btn" data-tab="shoot">Съёмочный план</button>
+    <button class="tab-btn" data-tab="analytics">Аналитика</button>
+  </nav>
+
+  <main>
+    <!-- CORE -->
+    <section class="tab-panel active" id="tab-core">
+      <div class="core-edit-bar" style="position:relative;">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" style="position:absolute;left:0;top:6px;pointer-events:none;" xmlns="http://www.w3.org/2000/svg"><path d="M12 2 L14 9 L21 9 L15.5 13.5 L17.5 21 L12 16.5 L6.5 21 L8.5 13.5 L3 9 L10 9 Z" fill="var(--teal)"/></svg>
+        <button class="btn-ghost" id="core-edit-btn" onclick="toggleCoreEdit()">Редактировать</button>
+      </div>
+      <div id="core-content" contenteditable="false">
+        <p class="lede">Не тема держит блог, а сюжет: амбициозная девушка, которая дошла до директора по маркетингу, бросила стабильность, уехала несмотря на семью — и в реальном времени строит новую жизнь. Голос, аудитория и четыре рубрики — режимы одного и того же человека, а не четыре маски.</p>
+
+        <div class="core-block">
+          <h2>Голос</h2>
+          <div class="tone-grid">
+            <div class="mini-card"><h4>Быстрая речь</h4><p>Поток, метафоры, постоянные уточнения-ремарки. Это подпись, не сглаживать.</p></div>
+            <div class="mini-card"><h4>Серьёзность</h4><p>Без самоиронии и подколок над собой — это не твой язык, и это нормально.</p></div>
+            <div class="mini-card"><h4>Острые темы</h4><p>Лёгкость не в шутках, а в готовности раскручивать спорное и дискутировать.</p></div>
+            <div class="mini-card"><h4>Честность</h4><p>Сквозная ценность: не сглаживать углы даже в сложном.</p></div>
+          </div>
+        </div>
+
+        <div class="core-block">
+          <h2>Аудитория</h2>
+          <p class="core-meaning" style="margin-bottom:12px;">Собирается по духу, не по демографии — возрасту, полу, статусу.</p>
+          <div class="aud-grid">
+            <div class="mini-card"><h4>Смелые шаги</h4><p>Приняли решение, которое не одобрили близкие, и хотят честную версию, а не глянец.</p></div>
+            <div class="mini-card"><h4>Внешний вид</h4><p>Стиль как эмоциональная саморегуляция, а не мода.</p></div>
+            <div class="mini-card"><h4>Течение жизни</h4><p>Думают о стареющих родителях и быстротечности времени — им нужен разговор равного.</p></div>
+            <div class="mini-card"><h4>Свой путь</h4><p>Устали от найма, но боятся — нужен честный процесс, а не идеальный кейс.</p></div>
+          </div>
+        </div>
+
+        <div class="core-block">
+          <h2>Рубрики</h2>
+
+          <div class="rubric-card" style="--c:var(--plum);">
+            <h3>Тихая дерзость</h3>
+            <div class="core-meaning">Смелость, которая проходит тихо внутри — без скандала</div>
+            <ul>
+              <li>Переезд несмотря на несогласие родителей — как тихий внутренний процесс</li>
+              <li>Уход из найма в неопределённость — доверие себе, а не уверенность в результате</li>
+              <li>Партнёрство как опора — жених как человек, благодаря которому шаг стал возможен</li>
+            </ul>
+          </div>
+
+          <div class="rubric-card" style="--c:var(--gold);">
+            <h3>Дофаминовые радости</h3>
+            <div class="core-meaning">Луки и бьюти как эмоциональный ритуал, а не советы стилиста</div>
+            <ul>
+              <li>Лук дня как индикатор внутреннего состояния</li>
+              <li>Быстрый дофамин от эстетики — честно про удовольствие, не про имидж</li>
+              <li>Смена стиля в новой стране — как одежда помогает освоиться</li>
+            </ul>
+          </div>
+
+          <div class="rubric-card" style="--c:var(--teal);">
+            <h3>Ночная кухня</h3>
+            <div class="core-meaning">Философия жизни — разговоры без часов</div>
+            <ul>
+              <li>Как быстро летит время</li>
+              <li>Старение родителей и как это проживать</li>
+              <li>Первый раз живём эту жизнь — право на ошибку без вины</li>
+              <li>Страхи, которые меняют форму с возрастом</li>
+            </ul>
+          </div>
+
+          <div class="rubric-card" style="--c:var(--slate);">
+            <h3>Раскладываю по полочкам</h3>
+            <div class="core-meaning">Маркетинг и путь в консалтинг через ход мысли</div>
+            <ul>
+              <li>Путь от СММ до директора по маркетингу — что реально научило</li>
+              <li>Почему уходишь из найма, даже имея сильный бэкграунд</li>
+              <li>Разбор кейсов через ход мысли, а не готовые советы</li>
+              <li>Как строится своё дело — честно, включая сомнения</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- CHECKLIST -->
+    <section class="tab-panel" id="tab-checklist">
+      <div class="add-row">
+        <input type="text" id="checklist-input" placeholder="Новый шаг..." style="flex:2;min-width:160px;">
+        <input type="date" id="checklist-date" style="flex:1;min-width:130px;">
+        <select id="checklist-priority" style="flex:1;min-width:120px;">
+          <option value="Высокий">Высокий</option>
+          <option value="Средний" selected>Средний</option>
+          <option value="Низкий">Низкий</option>
+        </select>
+        <button type="button" class="star-btn" id="new-star-btn" onclick="toggleNewStar()" title="Супер-приоритет">☆</button>
+        <button class="btn" onclick="addChecklistItem()">Добавить</button>
+      </div>
+      <div class="filter-bar" style="margin-bottom:10px;">
+        <select onchange="updateChecklistFilter(this.value)">
+          <option value="all">Все задачи</option>
+          <option value="today">Сегодня</option>
+          <option value="week">На этой неделе</option>
+          <option value="overdue">Просроченные</option>
+          <option value="nodate">Без даты</option>
+        </select>
+      </div>
+      <div id="checklist-list"></div>
+    </section>
+
+    <!-- IDEAS -->
+    <section class="tab-panel" id="tab-ideas">
+      <svg width="30" height="30" viewBox="0 0 24 24" style="position:absolute;top:-6px;right:40px;z-index:1;pointer-events:none;" xmlns="http://www.w3.org/2000/svg">
+        <g fill="var(--gold)"><circle cx="12" cy="4" r="3"/><circle cx="12" cy="20" r="3"/><circle cx="4" cy="12" r="3"/><circle cx="20" cy="12" r="3"/><circle cx="12" cy="12" r="3.6" fill="var(--plum)"/></g>
+      </svg>
+      <div class="idea-add">
+        <textarea id="idea-input" placeholder="Идея для поста или ролика... просто пиши, оформим потом" rows="3"></textarea>
+        <div class="idea-add-row">
+          <div id="idea-rubric-picker"></div>
+          <button class="btn" onclick="addIdea()">Закинуть идею</button>
+        </div>
+      </div>
+      <div class="idea-board" id="idea-board"></div>
+    </section>
+
+    <!-- CONTENT PLAN -->
+    <section class="tab-panel" id="tab-plan">
+      <div class="plan-form">
+        <input type="text" id="plan-topic" placeholder="Тема поста">
+        <select id="plan-rubric"></select>
+        <input type="date" id="plan-date">
+        <button class="btn" onclick="addContentItem()">+</button>
+      </div>
+      <div class="platform-checks">
+        <span style="font-size:12.5px;color:var(--muted);">Площадки:</span>
+        <label><input type="checkbox" id="plan-plat-tg" checked> Telegram</label>
+        <label><input type="checkbox" id="plan-plat-ig"> Instagram</label>
+        <label><input type="checkbox" id="plan-plat-yt"> YouTube</label>
+      </div>
+      <div id="plan-list"></div>
+    </section>
+
+    <!-- SHOOTING PLANNER -->
+    <section class="tab-panel" id="tab-shoot">
+      <p style="font-size:13px;color:var(--ink-soft);margin:0 0 16px;">Сюда автоматически попадает всё, что ещё не отснято. Дата съёмки сама предлагается за 2 дня до даты публикации — можно поменять.</p>
+      <div id="shoot-list"></div>
+    </section>
+
+    <!-- ANALYTICS -->
+    <section class="tab-panel" id="tab-analytics">
+      <div class="an-form">
+        <input type="date" id="an-date">
+        <select id="an-platform"></select>
+        <input type="number" id="an-followers" placeholder="Подписчики">
+        <input type="number" id="an-reach" placeholder="Охваты">
+        <input type="text" id="an-note" placeholder="Заметка">
+        <button class="btn" onclick="addAnalyticsEntry()">+</button>
+      </div>
+      <table>
+        <thead><tr><th>Дата</th><th>Площадка</th><th>Подписчики</th><th>Охваты</th><th>Заметка</th><th></th></tr></thead>
+        <tbody id="an-tbody"></tbody>
+      </table>
+      <div id="an-empty" class="empty" style="display:none;">Пока нет данных — добавь первую запись, когда появятся первые цифры.</div>
+    </section>
+  </main>
+</div>
+
+<script>
+const RUBRICS = [
+  {key:'dare', label:'Тихая дерзость', bg:'var(--plum-soft)', fg:'var(--plum)'},
+  {key:'dopamine', label:'Дофаминовые радости', bg:'var(--gold-soft)', fg:'var(--gold)'},
+  {key:'kitchen', label:'Ночная кухня', bg:'var(--teal-soft)', fg:'var(--teal)'},
+  {key:'shelf', label:'Раскладываю по полочкам', bg:'var(--slate-soft)', fg:'var(--slate)'}
+];
+const PLATFORMS = ['Telegram','Instagram','YouTube'];
+const PRIO_RANK = {'Высокий':0,'Средний':1,'Низкий':2};
+const PRIO_CLASS = {'Высокий':'prio-high','Средний':'prio-med','Низкий':'prio-low'};
+
+let checklistItems = [];
+let contentItems = [];
+let analyticsEntries = [];
+let ideas = [];
+let editingChecklistId = null;
+let planExpanded = new Set();
+let ideaPromoting = new Set();
+let newIdeaRubric = '';
+let filterState = {q:'', rubric:'', platform:'', when:'', stage:''};
+let balancePeriod = '14';
+
+async function loadData(key, fallback){
+  try{
+    const res = await window.storage.get(key, false);
+    if(res && res.value) return JSON.parse(res.value);
+    return fallback;
+  }catch(e){ return fallback; }
+}
+async function saveData(key, val){
+  try{ await window.storage.set(key, JSON.stringify(val), false); }
+  catch(e){ console.error('storage error', e); }
+}
+function uid(){ return 'id'+Date.now()+Math.floor(Math.random()*10000); }
+function rubricInfo(key){ return RUBRICS.find(r=>r.key===key) || RUBRICS[0]; }
+function escapeHtml(str){
+  return String(str).replace(/[&<>"']/g, m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+}
+function subtractDays(dateStr, n){
+  if(!dateStr) return '';
+  const d = new Date(dateStr+'T00:00:00');
+  d.setDate(d.getDate()-n);
+  return d.toISOString().slice(0,10);
+}
+
+/* ---------- tabs ---------- */
+document.querySelectorAll('.tab-btn').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+    document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById('tab-'+btn.dataset.tab).classList.add('active');
+  });
+});
+
+function fillSelects(){
+  document.getElementById('plan-rubric').innerHTML = RUBRICS.map(r=>`<option value="${r.key}">${r.label}</option>`).join('');
+  document.getElementById('an-platform').innerHTML = PLATFORMS.map(p=>`<option value="${p}">${p}</option>`).join('');
+}
+
+/* ---------- core edit ---------- */
+function toggleCoreEdit(){
+  const el = document.getElementById('core-content');
+  const btn = document.getElementById('core-edit-btn');
+  const editing = el.getAttribute('contenteditable')==='true';
+  if(editing){
+    el.setAttribute('contenteditable','false');
+    saveData('core-html', el.innerHTML);
+    btn.textContent = 'Редактировать';
+  } else {
+    el.setAttribute('contenteditable','true');
+    btn.textContent = 'Сохранить';
+    el.focus();
+  }
+}
+
+/* ---------- motivation ---------- */
+function computeStreak(){
+  const weeks = new Set();
+  contentItems.forEach(it=>{
+    if(it.published && it.date){
+      const d = new Date(it.date);
+      const day = (d.getDay()+6)%7;
+      const monday = new Date(d); monday.setDate(d.getDate()-day);
+      weeks.add(monday.toISOString().slice(0,10));
+    }
+  });
+  if(weeks.size===0) return 0;
+  const sortedWeeks = Array.from(weeks).sort().reverse();
+  let streak=1;
+  for(let i=0;i<sortedWeeks.length-1;i++){
+    const diff = (new Date(sortedWeeks[i]) - new Date(sortedWeeks[i+1]))/86400000;
+    if(diff===7) streak++; else break;
+  }
+  return streak;
+}
+function renderMotivation(){
+  const el = document.getElementById('motivation-strip');
+  const published = contentItems.filter(it=>it.published).length;
+  const streak = computeStreak();
+  if(published===0){
+    el.innerHTML = 'Пока нет опубликованных постов — первая запись даст старт счётчику 🌱';
+  } else {
+    el.innerHTML = `🔥 ${streak>0? streak+' нед. подряд · ':''}Опубликовано постов: ${published}`;
+  }
+}
+
+/* ---------- week calendar ---------- */
+function getWeekDates(){
+  const today = new Date();
+  const day = (today.getDay()+6)%7;
+  const monday = new Date(today); monday.setDate(today.getDate()-day);
+  const dates = [];
+  for(let i=0;i<7;i++){
+    const d = new Date(monday); d.setDate(monday.getDate()+i);
+    dates.push(d.toISOString().slice(0,10));
+  }
+  return dates;
+}
+function weekSection(label, items, getText, isDone){
+  if(items.length===0) return '';
+  const rows = items.slice(0,3).map(it=>`<div class="week-item ${isDone(it)?'done':''}">${escapeHtml(getText(it))}</div>`).join('');
+  const more = items.length>3 ? `<div class="week-item-more">+${items.length-3} ещё</div>` : '';
+  return `<div class="week-sec"><div class="week-sec-label">${label}</div>${rows}${more}</div>`;
+}
+function renderWeekCalendar(){
+  const container = document.getElementById('week-calendar');
+  if(!container) return;
+  const todayStr = new Date().toISOString().slice(0,10);
+  const dates = getWeekDates();
+  const dayNames = ['Пн','Вт','Ср','Чт','Пт','Сб','Вс'];
+  container.innerHTML = dates.map((dateStr, idx)=>{
+    const d = new Date(dateStr+'T00:00:00');
+    const isToday = dateStr===todayStr;
+    const tasks = checklistItems.filter(it=>it.date===dateStr);
+    const shoots = contentItems.filter(it=>it.shootDate===dateStr);
+    const pubs = contentItems.filter(it=>it.date===dateStr);
+
+    const secTasks = weekSection('Задачи', tasks, it=>it.text, it=>it.done);
+    const secShoot = weekSection('Съёмка', shoots, it=>it.topic, it=>it.filmed);
+    const secPub = weekSection('Публикация', pubs, it=>it.topic, it=>it.published);
+    const empty = (!secTasks && !secShoot && !secPub) ? '<div class="week-empty">—</div>' : '';
+
+    return `<div class="week-day ${isToday?'today':''}">
+      <div class="week-day-head">${dayNames[idx]}, ${d.getDate()}.${String(d.getMonth()+1).padStart(2,'0')}</div>
+      ${secTasks}${secShoot}${secPub}${empty}
+    </div>`;
+  }).join('');
+}
+
+/* ---------- checklist ---------- */
+let checklistFilter = 'all';
+let newTaskStarred = false;
+function toggleNewStar(){
+  newTaskStarred = !newTaskStarred;
+  const btn = document.getElementById('new-star-btn');
+  btn.textContent = newTaskStarred ? '★' : '☆';
+  btn.classList.toggle('active', newTaskStarred);
+}
+function updateChecklistFilter(val){ checklistFilter = val; renderChecklist(); }
+function passesChecklistFilter(it){
+  if(checklistFilter==='all') return true;
+  const today = new Date().toISOString().slice(0,10);
+  if(checklistFilter==='today') return it.date===today;
+  if(checklistFilter==='week'){
+    if(!it.date) return false;
+    const diff = (new Date(it.date)-new Date(today))/86400000;
+    return diff>=0 && diff<=7;
+  }
+  if(checklistFilter==='overdue') return !!it.date && it.date<today && !it.done;
+  if(checklistFilter==='nodate') return !it.date;
+  return true;
+}
+function renderChecklist(){
+  renderWeekCalendar();
+  const list = document.getElementById('checklist-list');
+  if(!list) return;
+  const visible = checklistItems.filter(passesChecklistFilter);
+  if(visible.length===0){
+    list.innerHTML = '<div class="empty">Ничего не найдено под этот фильтр.</div>';
+    return;
+  }
+  const sorted = visible.slice().sort((a,b)=>{
+    if(!!a.done !== !!b.done) return a.done ? 1 : -1;
+    if(!!a.starred !== !!b.starred) return a.starred ? -1 : 1;
+    const da = a.date || '9999-99-99', db = b.date || '9999-99-99';
+    if(da!==db) return da.localeCompare(db);
+    const pa = PRIO_RANK[a.priority] ?? 1, pb = PRIO_RANK[b.priority] ?? 1;
+    return pa-pb;
+  });
+  list.innerHTML = sorted.map(it=>{
+    if(editingChecklistId === it.id){
+      return `<div class="edit-row">
+        <input type="text" id="edit-text-${it.id}" value="${escapeHtml(it.text)}" style="flex:2;min-width:140px;">
+        <input type="date" id="edit-date-${it.id}" value="${it.date||''}">
+        <select id="edit-prio-${it.id}">
+          <option value="Высокий" ${it.priority==='Высокий'?'selected':''}>Высокий</option>
+          <option value="Средний" ${it.priority==='Средний'?'selected':''}>Средний</option>
+          <option value="Низкий" ${it.priority==='Низкий'?'selected':''}>Низкий</option>
+        </select>
+        <button type="button" class="star-btn ${it.starred?'active':''}" onclick="toggleStar('${it.id}')" title="Супер-приоритет">${it.starred?'★':'☆'}</button>
+        <button class="btn" onclick="saveChecklistEdit('${it.id}')">Сохранить</button>
+        <button class="btn-ghost" onclick="cancelChecklistEdit()">Отмена</button>
+      </div>`;
+    }
+    const prioClass = PRIO_CLASS[it.priority] || 'prio-med';
+    return `<div class="check-item ${it.done?'done':''} ${it.starred && !it.done?'starred':''}">
+      <span class="star ${it.starred?'active':''}" onclick="toggleStar('${it.id}')" title="Супер-приоритет">${it.starred?'★':'☆'}</span>
+      <input type="checkbox" ${it.done?'checked':''} onchange="toggleChecklist('${it.id}')">
+      <span class="check-text">${escapeHtml(it.text)}</span>
+      ${it.date? `<span class="check-date">${it.date}</span>` : ''}
+      <span class="prio ${prioClass}">${it.priority || 'Средний'}</span>
+      <button class="del" onclick="editChecklist('${it.id}')">✎</button>
+      <button class="del" onclick="deleteChecklist('${it.id}')">×</button>
+    </div>`;
+  }).join('');
+}
+function addChecklistItem(){
+  const input = document.getElementById('checklist-input');
+  const dateInput = document.getElementById('checklist-date');
+  const prioSelect = document.getElementById('checklist-priority');
+  const text = input.value.trim();
+  if(!text) return;
+  checklistItems.push({id:uid(), text, done:false, date:dateInput.value, priority:prioSelect.value, starred:newTaskStarred});
+  input.value=''; dateInput.value='';
+  newTaskStarred = false;
+  const starBtn = document.getElementById('new-star-btn');
+  starBtn.textContent = '☆'; starBtn.classList.remove('active');
+  saveData('checklist-items', checklistItems);
+  renderChecklist();
+}
+function toggleStar(id){
+  const it = checklistItems.find(i=>i.id===id);
+  if(it) it.starred = !it.starred;
+  saveData('checklist-items', checklistItems);
+  renderChecklist();
+}
+function toggleChecklist(id){
+  const it = checklistItems.find(i=>i.id===id);
+  if(it) it.done = !it.done;
+  saveData('checklist-items', checklistItems);
+  renderChecklist();
+}
+function deleteChecklist(id){
+  checklistItems = checklistItems.filter(i=>i.id!==id);
+  saveData('checklist-items', checklistItems);
+  renderChecklist();
+}
+function editChecklist(id){ editingChecklistId = id; renderChecklist(); }
+function cancelChecklistEdit(){ editingChecklistId = null; renderChecklist(); }
+function saveChecklistEdit(id){
+  const it = checklistItems.find(i=>i.id===id);
+  if(it){
+    const newText = document.getElementById('edit-text-'+id).value.trim();
+    it.text = newText || it.text;
+    it.date = document.getElementById('edit-date-'+id).value;
+    it.priority = document.getElementById('edit-prio-'+id).value;
+  }
+  editingChecklistId = null;
+  saveData('checklist-items', checklistItems);
+  renderChecklist();
+}
+
+/* ---------- ideas: creative board ---------- */
+function renderIdeaRubricPicker(){
+  const el = document.getElementById('idea-rubric-picker');
+  const opts = [{key:'', label:'Без рубрики', bg:'var(--muted-soft)', fg:'var(--muted)'}].concat(RUBRICS);
+  el.innerHTML = opts.map(r=>`<span class="rubric-dot ${newIdeaRubric===r.key?'active':''}" style="background:${r.bg};color:${r.fg};" onclick="setNewIdeaRubric('${r.key}')">${r.label}</span>`).join('');
+}
+function setNewIdeaRubric(key){ newIdeaRubric = key; renderIdeaRubricPicker(); }
+function addIdea(){
+  const input = document.getElementById('idea-input');
+  const text = input.value.trim();
+  if(!text) return;
+  ideas.push({id:uid(), text, rubric:newIdeaRubric});
+  input.value='';
+  newIdeaRubric='';
+  renderIdeaRubricPicker();
+  saveData('ideas', ideas);
+  renderIdeas();
+}
+function updateIdeaText(id, val){
+  const idea = ideas.find(i=>i.id===id);
+  if(idea) idea.text = val;
+  saveData('ideas', ideas);
+}
+function cycleIdeaRubric(id){
+  const idea = ideas.find(i=>i.id===id);
+  if(!idea) return;
+  const keys = [''].concat(RUBRICS.map(r=>r.key));
+  const idx = keys.indexOf(idea.rubric||'');
+  idea.rubric = keys[(idx+1)%keys.length];
+  saveData('ideas', ideas);
+  renderIdeas();
+}
+function deleteIdea(id){
+  ideas = ideas.filter(i=>i.id!==id);
+  ideaPromoting.delete(id);
+  saveData('ideas', ideas);
+  renderIdeas();
+}
+function togglePromote(id){
+  if(ideaPromoting.has(id)) ideaPromoting.delete(id); else ideaPromoting.add(id);
+  renderIdeas();
+}
+function confirmPromote(id){
+  const idea = ideas.find(i=>i.id===id);
+  if(!idea) return;
+  const rubric = document.getElementById('promote-rubric-'+id).value;
+  const date = document.getElementById('promote-date-'+id).value;
+  const platforms = [];
+  if(document.getElementById('promote-tg-'+id).checked) platforms.push('Telegram');
+  if(document.getElementById('promote-ig-'+id).checked) platforms.push('Instagram');
+  if(document.getElementById('promote-yt-'+id).checked) platforms.push('YouTube');
+  const shootDate = date ? subtractDays(date,2) : '';
+  contentItems.push({id:uid(), topic:idea.text, rubric, platforms, date, shootDate, script:'', filmed:false, edited:false, published:false});
+  ideas = ideas.filter(i=>i.id!==id);
+  ideaPromoting.delete(id);
+  saveData('ideas', ideas);
+  saveData('content-items', contentItems);
+  renderIdeas(); renderPlan(); renderShootPlan(); renderMotivation();
+}
+function renderIdeas(){
+  const board = document.getElementById('idea-board');
+  if(ideas.length===0){
+    board.innerHTML = '<div class="empty">Пока пусто — закинь первую идею выше, оформлять пока не нужно.</div>';
+    return;
+  }
+  board.innerHTML = ideas.slice().reverse().map(idea=>{
+    const r = idea.rubric ? rubricInfo(idea.rubric) : {bg:'var(--muted-soft)', fg:'var(--muted)'};
+    const isPromoting = ideaPromoting.has(idea.id);
+    let promotePanel = '';
+    if(isPromoting){
+      promotePanel = `<div class="idea-promote-panel">
+        <div class="edit-fields">
+          <select id="promote-rubric-${idea.id}">
+            ${RUBRICS.map(rr=>`<option value="${rr.key}" ${rr.key===idea.rubric?'selected':''}>${rr.label}</option>`).join('')}
+          </select>
+          <input type="date" id="promote-date-${idea.id}" placeholder="Дата публикации">
+        </div>
+        <div class="platform-checks" style="margin-bottom:10px;">
+          <label><input type="checkbox" id="promote-tg-${idea.id}" checked> Telegram</label>
+          <label><input type="checkbox" id="promote-ig-${idea.id}"> Instagram</label>
+          <label><input type="checkbox" id="promote-yt-${idea.id}"> YouTube</label>
+        </div>
+        <button class="btn" onclick="confirmPromote('${idea.id}')">Создать в контент-плане</button>
+      </div>`;
+    }
+    return `<div class="idea-card">
+      <span class="idea-dot" style="background:${r.fg};" title="Рубрика: клик, чтобы сменить" onclick="cycleIdeaRubric('${idea.id}')"></span>
+      <textarea onchange="updateIdeaText('${idea.id}', this.value)">${escapeHtml(idea.text)}</textarea>
+      <div class="idea-actions">
+        <button class="del" style="color:var(--slate);" onclick="togglePromote('${idea.id}')">${isPromoting?'Свернуть':'→ В план'}</button>
+        <button class="del" onclick="deleteIdea('${idea.id}')">Удалить</button>
+      </div>
+      ${promotePanel}
+    </div>`;
+  }).join('');
+}
+
+/* ---------- content items: shared logic ---------- */
+function statusKey(it){ return it.published?'published': it.edited?'edited': it.filmed?'filmed':'draft'; }
+function statusLabel(it){
+  return {draft:'Черновик',filmed:'Отснято',edited:'Смонтировано',published:'Опубликовано'}[statusKey(it)];
+}
+function getFilteredItems(){
+  return contentItems.filter(it=>{
+    if(filterState.q && !it.topic.toLowerCase().includes(filterState.q.toLowerCase())) return false;
+    if(filterState.rubric && it.rubric!==filterState.rubric) return false;
+    if(filterState.platform && !(it.platforms||[]).includes(filterState.platform)) return false;
+    if(filterState.when==='nodate' && it.date) return false;
+    if(filterState.when==='scheduled' && !it.date) return false;
+    if(filterState.stage && statusKey(it)!==filterState.stage) return false;
+    return true;
+  });
+}
+function updateFilter(key,val){ filterState[key]=val; renderPlan(); }
+function updateBalancePeriod(val){ balancePeriod=val; renderPlan(); }
+function withinPeriod(dateStr, period){
+  if(period==='all') return true;
+  if(!dateStr) return false;
+  const diff = (new Date() - new Date(dateStr))/86400000;
+  return diff>=0 && diff<=Number(period);
+}
+function renderBalanceWidget(){
+  const relevant = contentItems.filter(it=>withinPeriod(it.date, balancePeriod));
+  const total = relevant.length;
+  const counts = {}; RUBRICS.forEach(r=>counts[r.key]=0);
+  relevant.forEach(it=>{ if(counts[it.rubric]!==undefined) counts[it.rubric]++; });
+  let maxShare=0, maxLabel='';
+  const chips = RUBRICS.map(r=>{
+    const c = counts[r.key];
+    const pct = total? Math.round(c/total*100) : 0;
+    if(pct>maxShare && c>0){maxShare=pct; maxLabel=r.label;}
+    return `<div class="balance-chip" style="background:${r.bg};color:${r.fg};">${r.label}: ${c}${total? ' · '+pct+'%':''}</div>`;
+  }).join('');
+  const warn = (total>=4 && maxShare>50) ? `<div class="balance-warn">⚠ «${maxLabel}» — ${maxShare}% контента за период. Может, добавить другие рубрики?</div>` : '';
+  return `<div class="balance-box">
+    <div class="balance-head"><span>Баланс рубрик</span>
+      <select onchange="updateBalancePeriod(this.value)">
+        <option value="7" ${balancePeriod==='7'?'selected':''}>7 дней</option>
+        <option value="14" ${balancePeriod==='14'?'selected':''}>14 дней</option>
+        <option value="30" ${balancePeriod==='30'?'selected':''}>30 дней</option>
+        <option value="all" ${balancePeriod==='all'?'selected':''}>Всё время</option>
+      </select>
+    </div>
+    <div class="balance-row">${chips}</div>
+    ${warn}
+  </div>`;
+}
+function renderItemCard(it){
+  const r = rubricInfo(it.rubric);
+  const isOpen = planExpanded.has(it.id);
+  const platTags = (it.platforms||[]).map(p=>`<span class="plat-tag">${p}</span>`).join('');
+  let openBlock = '';
+  if(isOpen){
+    openBlock = `
+      <div class="edit-fields">
+        <input type="text" value="${escapeHtml(it.topic)}" onchange="updateItemField('${it.id}','topic',this.value)">
+        <select onchange="updateItemField('${it.id}','rubric',this.value)">
+          ${RUBRICS.map(rr=>`<option value="${rr.key}" ${rr.key===it.rubric?'selected':''}>${rr.label}</option>`).join('')}
+        </select>
+        <input type="date" value="${it.date||''}" onchange="updateItemField('${it.id}','date',this.value)">
+      </div>
+      <div class="platform-checks" style="margin-bottom:6px;">
+        ${PLATFORMS.map(p=>`<label><input type="checkbox" ${(it.platforms||[]).includes(p)?'checked':''} onchange="togglePlatform('${it.id}','${p}',this.checked)"> ${p}</label>`).join('')}
+      </div>
+      <div class="shoot-date-row"><label>Дата съёмки: <input type="date" value="${it.shootDate||''}" onchange="updateItemField('${it.id}','shootDate',this.value)"></label></div>
+      <textarea placeholder="Сценарий / заметки к посту..." onchange="updateScript('${it.id}', this.value)">${escapeHtml(it.script||'')}</textarea>`;
+  }
+  return `<div class="item-card">
+    <div class="item-top">
+      <span class="tag" style="background:${r.bg};color:${r.fg};">${r.label}</span>
+      <span class="item-topic">${escapeHtml(it.topic)}</span>
+      <span class="status-pill">${statusLabel(it)}</span>
+    </div>
+    <div class="item-meta">${platTags || 'без площадки'}${it.date? ' · '+it.date : ' · дата не выбрана'}</div>
+    <div class="stage-row">
+      <label><input type="checkbox" ${it.filmed?'checked':''} onchange="updateStage('${it.id}','filmed',this.checked)"> Отснято</label>
+      <label><input type="checkbox" ${it.edited?'checked':''} onchange="updateStage('${it.id}','edited',this.checked)"> Смонтировано</label>
+      <label><input type="checkbox" ${it.published?'checked':''} onchange="updateStage('${it.id}','published',this.checked)"> Опубликовано</label>
+    </div>
+    <div style="margin-top:8px;display:flex;gap:14px;">
+      <button class="del" style="color:var(--slate);" onclick="togglePlanItem('${it.id}')">${isOpen? 'Свернуть' : 'Открыть тему'}</button>
+      <button class="del" onclick="deleteContentItem('${it.id}')">Удалить</button>
+    </div>
+    ${openBlock}
+  </div>`;
+}
+function togglePlanItem(id){
+  if(planExpanded.has(id)) planExpanded.delete(id); else planExpanded.add(id);
+  renderPlan();
+}
+function renderPlan(){
+  renderWeekCalendar();
+  const container = document.getElementById('plan-list');
+  const filtered = getFilteredItems();
+  const noDate = filtered.filter(it=>!it.date);
+  const scheduled = filtered.filter(it=>it.date).sort((a,b)=>a.date.localeCompare(b.date));
+
+  let html = renderBalanceWidget();
+  html += `<div class="filter-bar">
+    <input type="text" placeholder="Поиск по теме..." value="${escapeHtml(filterState.q)}" oninput="updateFilter('q', this.value)">
+    <select onchange="updateFilter('rubric', this.value)">
+      <option value="">Все рубрики</option>
+      ${RUBRICS.map(r=>`<option value="${r.key}" ${filterState.rubric===r.key?'selected':''}>${r.label}</option>`).join('')}
+    </select>
+    <select onchange="updateFilter('platform', this.value)">
+      <option value="">Все площадки</option>
+      ${PLATFORMS.map(p=>`<option value="${p}" ${filterState.platform===p?'selected':''}>${p}</option>`).join('')}
+    </select>
+    <select onchange="updateFilter('when', this.value)">
+      <option value="">Все даты</option>
+      <option value="nodate" ${filterState.when==='nodate'?'selected':''}>Без даты</option>
+      <option value="scheduled" ${filterState.when==='scheduled'?'selected':''}>Запланировано</option>
+    </select>
+    <select onchange="updateFilter('stage', this.value)">
+      <option value="">Любая стадия</option>
+      <option value="draft" ${filterState.stage==='draft'?'selected':''}>Черновик</option>
+      <option value="filmed" ${filterState.stage==='filmed'?'selected':''}>Отснято</option>
+      <option value="edited" ${filterState.stage==='edited'?'selected':''}>Смонтировано</option>
+      <option value="published" ${filterState.stage==='published'?'selected':''}>Опубликовано</option>
+    </select>
+  </div>`;
+
+  if(filtered.length===0){
+    html += '<div class="empty">Ничего не найдено — измени фильтры или добавь тему выше (или загляни во вкладку «Идеи»).</div>';
+  } else {
+    if(noDate.length){
+      html += '<div class="section-sub">Без даты</div>';
+      html += noDate.slice().reverse().map(it=>renderItemCard(it)).join('');
+    }
+    if(scheduled.length){
+      html += '<div class="section-sub">Запланировано</div>';
+      html += scheduled.map(it=>renderItemCard(it)).join('');
+    }
+  }
+  container.innerHTML = html;
+}
+function addContentItem(){
+  const topic = document.getElementById('plan-topic').value.trim();
+  if(!topic) return;
+  const rubric = document.getElementById('plan-rubric').value;
+  const date = document.getElementById('plan-date').value;
+  const platforms = [];
+  if(document.getElementById('plan-plat-tg').checked) platforms.push('Telegram');
+  if(document.getElementById('plan-plat-ig').checked) platforms.push('Instagram');
+  if(document.getElementById('plan-plat-yt').checked) platforms.push('YouTube');
+  const shootDate = date ? subtractDays(date,2) : '';
+  contentItems.push({id:uid(), topic, rubric, platforms, date, shootDate, script:'', shootList:[], filmed:false, edited:false, published:false});
+  document.getElementById('plan-topic').value='';
+  document.getElementById('plan-date').value='';
+  saveData('content-items', contentItems);
+  renderPlan(); renderShootPlan(); renderMotivation();
+}
+function deleteContentItem(id){
+  contentItems = contentItems.filter(i=>i.id!==id);
+  saveData('content-items', contentItems);
+  renderPlan(); renderShootPlan(); renderMotivation();
+}
+function updateScript(id, val){
+  const it = contentItems.find(i=>i.id===id);
+  if(it) it.script = val;
+  saveData('content-items', contentItems);
+  renderPlan();
+  renderShootPlan();
+}
+function updateItemField(id, field, val){
+  const it = contentItems.find(i=>i.id===id);
+  if(it){
+    it[field] = val;
+    if(field==='date' && val && !it.shootDate){ it.shootDate = subtractDays(val,2); }
+  }
+  saveData('content-items', contentItems);
+  renderPlan(); renderShootPlan();
+}
+function togglePlatform(id, platform, checked){
+  const it = contentItems.find(i=>i.id===id);
+  if(!it) return;
+  it.platforms = it.platforms || [];
+  if(checked && !it.platforms.includes(platform)) it.platforms.push(platform);
+  if(!checked) it.platforms = it.platforms.filter(p=>p!==platform);
+  saveData('content-items', contentItems);
+  renderPlan();
+}
+function updateStage(id, stage, val){
+  const it = contentItems.find(i=>i.id===id);
+  if(!it) return;
+  it[stage] = val;
+  if(stage==='filmed' && !val){ it.edited=false; it.published=false; }
+  if(stage==='edited'){ if(val) it.filmed=true; else it.published=false; }
+  if(stage==='published' && val){ it.filmed=true; it.edited=true; }
+  saveData('content-items', contentItems);
+  renderPlan(); renderShootPlan(); renderMotivation();
+}
+
+/* ---------- shooting planner ---------- */
+const SHOOT_TYPES = ['Видео','Закадровый голос','Фото'];
+function formatDateLabel(dateStr){
+  const d = new Date(dateStr+'T00:00:00');
+  const days=['Вс','Пн','Вт','Ср','Чт','Пт','Сб'];
+  return `${dateStr} · ${days[d.getDay()]}`;
+}
+function addShootTask(itemId){
+  const typeSel = document.getElementById('shoot-type-'+itemId);
+  const descInput = document.getElementById('shoot-desc-'+itemId);
+  const desc = descInput.value.trim();
+  const it = contentItems.find(i=>i.id===itemId);
+  if(!it) return;
+  it.shootList = it.shootList || [];
+  it.shootList.push({id:uid(), type:typeSel.value, desc, done:false});
+  if(it.filmed){ it.filmed=false; it.edited=false; it.published=false; }
+  descInput.value='';
+  saveData('content-items', contentItems);
+  renderShootPlan(); renderPlan();
+}
+function toggleShootTask(itemId, taskId, checked){
+  const it = contentItems.find(i=>i.id===itemId);
+  if(!it) return;
+  const t = (it.shootList||[]).find(x=>x.id===taskId);
+  if(t) t.done = checked;
+  if(it.shootList && it.shootList.length>0 && it.shootList.every(x=>x.done)){
+    it.filmed = true;
+  }
+  saveData('content-items', contentItems);
+  renderShootPlan(); renderPlan(); renderMotivation();
+}
+function deleteShootTask(itemId, taskId){
+  const it = contentItems.find(i=>i.id===itemId);
+  if(!it) return;
+  it.shootList = (it.shootList||[]).filter(x=>x.id!==taskId);
+  saveData('content-items', contentItems);
+  renderShootPlan(); renderPlan();
+}
+let shootExpanded = new Set();
+function toggleShootScript(id){
+  if(shootExpanded.has(id)) shootExpanded.delete(id); else shootExpanded.add(id);
+  renderShootPlan();
+}
+function renderShootCard(it){
+  const r = rubricInfo(it.rubric);
+  const platTags = (it.platforms||[]).map(p=>`<span class="plat-tag">${p}</span>`).join('');
+  const tasks = it.shootList || [];
+  const isScriptOpen = shootExpanded.has(it.id);
+  const tasksHtml = tasks.length? tasks.map(t=>`
+    <div class="shoot-task ${t.done?'done':''}">
+      <input type="checkbox" ${t.done?'checked':''} onchange="toggleShootTask('${it.id}','${t.id}',this.checked)">
+      <span class="shoot-type-tag">${t.type}</span>
+      <span class="shoot-desc">${escapeHtml(t.desc||'')}</span>
+      <button class="del" onclick="deleteShootTask('${it.id}','${t.id}')">×</button>
+    </div>`).join('') : '<div style="font-size:12.5px;color:var(--muted);margin-top:6px;">Пока пусто — добавь, что именно нужно снять</div>';
+  return `<div class="item-card">
+    <div class="item-top">
+      <span class="tag" style="background:${r.bg};color:${r.fg};">${r.label}</span>
+      <span class="item-topic">${escapeHtml(it.topic)}</span>
+    </div>
+    <div class="item-meta">${platTags || 'без площадки'}${it.date? ' · публикация '+it.date : ''}</div>
+    <div class="shoot-tasks">${tasksHtml}</div>
+    <div class="shoot-add-row">
+      <select id="shoot-type-${it.id}">${SHOOT_TYPES.map(t=>`<option value="${t}">${t}</option>`).join('')}</select>
+      <input type="text" id="shoot-desc-${it.id}" placeholder="Что именно снять / записать...">
+      <button class="btn-ghost" onclick="addShootTask('${it.id}')">+ Пункт</button>
+    </div>
+    <button class="del" style="color:var(--slate);margin-top:8px;" onclick="toggleShootScript('${it.id}')">${isScriptOpen? 'Свернуть сценарий' : (it.script? 'Открыть сценарий' : '+ Расписать сценарий')}</button>
+    ${isScriptOpen? `<textarea placeholder="Полный сценарий / текст ролика или поста..." onchange="updateScript('${it.id}', this.value)">${escapeHtml(it.script||'')}</textarea>` : ''}
+    <div class="shoot-date-row">
+      <label>Дата съёмки: <input type="date" value="${it.shootDate||''}" onchange="updateShootDate('${it.id}', this.value)"></label>
+      <label><input type="checkbox" ${it.filmed?'checked':''} onchange="updateStage('${it.id}','filmed',this.checked)"> Всё отснято</label>
+    </div>
+  </div>`;
+}
+function updateShootDate(id, val){
+  const it = contentItems.find(i=>i.id===id);
+  if(it) it.shootDate = val;
+  saveData('content-items', contentItems);
+  renderShootPlan(); renderPlan();
+}
+function renderShootPlan(){
+  renderWeekCalendar();
+  const container = document.getElementById('shoot-list');
+  if(!container) return;
+  const todo = contentItems.filter(it=>!it.filmed);
+  if(todo.length===0){
+    container.innerHTML = '<div class="empty">Всё отснято — новые темы появятся здесь автоматически, как только добавишь тему в план.</div>';
+    return;
+  }
+  const noDate = todo.filter(it=>!it.shootDate);
+  const dated = todo.filter(it=>it.shootDate).sort((a,b)=>a.shootDate.localeCompare(b.shootDate));
+  let html = '';
+  if(noDate.length){
+    html += '<div class="section-sub">Без даты съёмки — назначь день</div>';
+    html += noDate.map(it=>renderShootCard(it)).join('');
+  }
+  const groups = {};
+  dated.forEach(it=>{ (groups[it.shootDate]=groups[it.shootDate]||[]).push(it); });
+  Object.keys(groups).sort().forEach(date=>{
+    html += `<div class="section-sub">${formatDateLabel(date)}</div>`;
+    html += groups[date].map(it=>renderShootCard(it)).join('');
+  });
+  container.innerHTML = html;
+}
+
+/* ---------- analytics ---------- */
+function computeDisplayEntries(){
+  const byPlatform = {};
+  analyticsEntries.forEach(e=>{ (byPlatform[e.platform]=byPlatform[e.platform]||[]).push(e); });
+  const withDelta = [];
+  Object.values(byPlatform).forEach(arr=>{
+    const sortedAsc = arr.slice().sort((a,b)=>(a.date||'').localeCompare(b.date||''));
+    sortedAsc.forEach((e,i)=>{
+      const prev = sortedAsc[i-1];
+      const fd = (prev && e.followers!=null && prev.followers!=null) ? e.followers - prev.followers : null;
+      const rd = (prev && e.reach!=null && prev.reach!=null) ? e.reach - prev.reach : null;
+      withDelta.push(Object.assign({}, e, {_fd:fd, _rd:rd}));
+    });
+  });
+  return withDelta;
+}
+function renderAnalytics(){
+  const tbody = document.getElementById('an-tbody');
+  const empty = document.getElementById('an-empty');
+  if(analyticsEntries.length===0){ tbody.innerHTML=''; empty.style.display='block'; return; }
+  empty.style.display='none';
+  const withDelta = computeDisplayEntries();
+  const sorted = withDelta.slice().sort((a,b)=>(b.date||'').localeCompare(a.date||''));
+  tbody.innerHTML = sorted.map(e=>{
+    const fd = e._fd!=null ? `<span class="delta ${e._fd>=0?'up':'down'}">${e._fd>=0?'+':''}${e._fd}</span>` : '';
+    const rd = e._rd!=null ? `<span class="delta ${e._rd>=0?'up':'down'}">${e._rd>=0?'+':''}${e._rd}</span>` : '';
+    return `<tr>
+      <td>${e.date||'—'}</td>
+      <td>${e.platform}</td>
+      <td>${e.followers ?? '—'}${fd}</td>
+      <td>${e.reach ?? '—'}${rd}</td>
+      <td>${escapeHtml(e.note||'')}</td>
+      <td><button class="del" onclick="deleteAnalytics('${e.id}')">×</button></td>
+    </tr>`;
+  }).join('');
+}
+function addAnalyticsEntry(){
+  const date = document.getElementById('an-date').value;
+  const platform = document.getElementById('an-platform').value;
+  const followers = document.getElementById('an-followers').value;
+  const reach = document.getElementById('an-reach').value;
+  const note = document.getElementById('an-note').value.trim();
+  if(!date && !followers && !reach && !note) return;
+  analyticsEntries.push({id:uid(), date, platform, followers: followers?Number(followers):null, reach: reach?Number(reach):null, note});
+  ['an-date','an-followers','an-reach','an-note'].forEach(id=>document.getElementById(id).value='');
+  saveData('analytics-entries', analyticsEntries);
+  renderAnalytics();
+}
+function deleteAnalytics(id){
+  analyticsEntries = analyticsEntries.filter(e=>e.id!==id);
+  saveData('analytics-entries', analyticsEntries);
+  renderAnalytics();
+}
+
+/* ---------- init ---------- */
+async function init(){
+  fillSelects();
+  renderIdeaRubricPicker();
+
+  const savedCore = await loadData('core-html', null);
+  if(savedCore) document.getElementById('core-content').innerHTML = savedCore;
+
+  checklistItems = await loadData('checklist-items', null);
+  if(checklistItems===null){
+    checklistItems = [
+      {id:uid(), text:'Оформить Telegram-канал: название и описание под новое позиционирование', done:false, date:'', priority:'Высокий'},
+      {id:uid(), text:'Написать первый пост в рубрике «Тихая дерзость»', done:false, date:'', priority:'Высокий'},
+      {id:uid(), text:'Обновить Instagram-профиль под новое позиционирование', done:false, date:'', priority:'Средний'},
+      {id:uid(), text:'Запланировать первый разговор для YouTube («Ночная кухня»)', done:false, date:'', priority:'Средний'},
+      {id:uid(), text:'Выбрать 5 тем на первые 2 недели и внести в контент-план', done:false, date:'', priority:'Высокий'}
+    ];
+    saveData('checklist-items', checklistItems);
+  }
+  ideas = await loadData('ideas', []);
+  contentItems = await loadData('content-items', []);
+  contentItems.forEach(it=>{
+    if(!it.platforms) it.platforms = it.platform ? [it.platform] : [];
+    if(it.shootDate===undefined) it.shootDate = it.date ? subtractDays(it.date,2) : '';
+    if(!it.shootList) it.shootList = [];
+  });
+  analyticsEntries = await loadData('analytics-entries', []);
+
+  renderChecklist();
+  renderIdeas();
+  renderPlan();
+  renderShootPlan();
+  renderAnalytics();
+  renderMotivation();
+}
+init();
+</script>
+
+</body>
+</html>
