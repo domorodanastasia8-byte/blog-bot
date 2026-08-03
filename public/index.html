@@ -56,6 +56,7 @@ if(window.Telegram && window.Telegram.WebApp){
   --muted:#A68F7D;  --muted-soft:#F5EBDD;
 }
 *{box-sizing:border-box;}
+html,body{margin:0;padding:0;overflow-x:hidden;background:#FBF1E2;}
 .hub{font-family:'Inter',sans-serif;color:var(--ink);background:var(--bg);padding:0 0 40px;max-width:960px;margin:0 auto;}
 .hub h1,.hub h2,.hub h3{font-family:'Unbounded',sans-serif;font-weight:700;margin:0;}
 .topbar{padding:28px 20px 0;position:relative;overflow:visible;}
@@ -84,6 +85,11 @@ if(window.Telegram && window.Telegram.WebApp){
 
 .tabs{display:flex;gap:8px;padding:18px 20px 10px;overflow-x:auto;}
 .tab-btn{font-family:'Inter',sans-serif;font-size:13px;font-weight:600;color:var(--ink-soft);background:var(--card);border:2px solid var(--line);border-radius:999px;padding:9px 16px;cursor:pointer;white-space:nowrap;transition:all .15s;}
+@media(max-width:420px){
+  .tab-btn{padding:7px 12px;font-size:12px;}
+  .topbar h1{font-size:28px;}
+  .topbar::before,.topbar::after{display:none;}
+}
 .tab-btn:hover{color:var(--ink);border-color:var(--plum);}
 .tab-btn.active{color:#fff;background:var(--plum);border-color:var(--plum);}
 
@@ -120,7 +126,10 @@ main{padding:24px 20px 0;}
 input[type=text],input[type=date],input[type=number],select,textarea{
   font-family:'Inter',sans-serif;font-size:14px;color:var(--ink);
   border:1px solid var(--line);border-radius:8px;padding:9px 12px;background:var(--card);
+  min-width:0;max-width:100%;
 }
+select{text-overflow:ellipsis;overflow:hidden;white-space:nowrap;}
+.plan-form > *, .an-form > *, .edit-fields > *{min-width:0;}
 textarea{width:100%;resize:vertical;min-height:64px;margin-top:8px;}
 .btn{font-family:'Inter',sans-serif;font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:.03em;background:var(--plum);color:#fff;border:none;border-radius:999px;padding:10px 20px;cursor:pointer;}
 .btn:hover{opacity:.88;}
