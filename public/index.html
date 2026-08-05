@@ -921,6 +921,11 @@ function renderDashboard(){
   if(periodRealizedIdeas.length>0) good.push(`Реализовано ${periodRealizedIdeas.length} идей ${periodLabel()}`);
   if(needShoot>5) attention.push(`${needShoot} тем ждут съёмки — многовато в очереди`);
   if(periodScheduled.length>0 && periodPublished.length===0) attention.push(`В плане ${periodScheduled.length} ${pluralPosts(periodScheduled.length)} на этот период, но пока ничего не опубликовано`);
+  const anyPlatformData = PLATFORMS.some(p=>platformPeriodLatest[p]);
+  if(!anyPlatformData) attention.push(`Аналитика по площадкам не заполнена ${periodLabel()} — впиши цифры подписчиков, чтобы видеть рост`);
+  const publishedWithoutStats = periodPublished.filter(it=>!postAnalytics.some(pa=>pa.contentItemId===it.id && (pa.views!=null || pa.reach!=null)));
+  if(publishedWithoutStats.length>0) attention.push(`У ${publishedWithoutStats.length} ${pluralPosts(publishedWithoutStats.length)} нет статистики просмотров — загляни в «Аналитика → По публикациям»`);
+  if(periodPromos.length===0 && periodPublished.length>0) attention.push(`Платного продвижения ${periodLabel()} не было — это нормально, но если планируешь рекламу, не забудь потом внести данные`);
   if(good.length===0) good.push('Пока данных маловато для выводов — заполни чек-лист и контент-план');
 
   const fromD = new Date(dashCustomFrom+'T00:00:00');
@@ -1032,9 +1037,10 @@ function renderDashboard(){
     <div class="dash-section">
       <h2>Что получилось хорошо ${periodLabel()}</h2>
       <div>${good.map(g=>`<div class="insight-item good">✓ ${g}</div>`).join('')}</div>
-      ${attention.length? `
       <h2 style="margin-top:16px;">На что обратить внимание</h2>
-      <div>${attention.map(a=>`<div class="insight-item warn">⚠ ${a}</div>`).join('')}</div>` : ''}
+      <div>${attention.length
+        ? attention.map(a=>`<div class="insight-item warn">⚠ ${a}</div>`).join('')
+        : '<div class="insight-item good">✓ Серьёзных поводов для беспокойства нет — всё ровно</div>'}</div>
     </div>
   `;
 }
