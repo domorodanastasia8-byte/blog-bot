@@ -57,6 +57,27 @@ async function addToList(key, item) {
   arr.push(item);
   await upstashSet(key, JSON.stringify(arr));
 }
+async function getList(key) {
+  try {
+    const raw = await upstashGet(key);
+    return raw ? JSON.parse(raw) : [];
+  } catch (e) { return []; }
+}
+
+// ---------- московское время (без внешних библиотек) ----------
+function getMoscowParts() {
+  const fmt = new Intl.DateTimeFormat('en-US', {
+    timeZone: 'Europe/Moscow', hour12: false,
+    year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit'
+  });
+  const map = {};
+  fmt.formatToParts(new Date()).forEach(p => { map[p.type] = p.value; });
+  return {
+    dateStr: `${map.year}-${map.month}-${map.day}`,
+    hour: parseInt(map.hour, 10),
+    minute: parseInt(map.minute, 10)
+  };
+}
 
 // ---------- API для мини-приложения (повторяет window.storage) ----------
 app.get('/api/storage/:key', async (req, res) => {
@@ -93,7 +114,8 @@ function reply(chatId, text) {
   bot.sendMessage(chatId, text);
 }
 
-bot.onText(/^\/start/, (msg) => {
+bot.onText(/^\/start/, async (msg) => {
+  await upstashSet('bot-chat-id', String(msg.chat.id));
   bot.sendMessage(
     msg.chat.id,
     'Привет! Я твой помощник по блогу 🌸\n\n' +
@@ -102,7 +124,8 @@ bot.onText(/^\/start/, (msg) => {
       '• «Идея ...» — добавлю в идеи\n' +
       '• «План ...» — добавлю в контент-план\n' +
       '• «Съемка ...» — добавлю в съёмочный план\n\n' +
-      'Например: Задачи оформить инстаграм',
+      'Например: Задачи оформить инстаграм\n\n' +
+      'Каждое утро в 10:00 по Москве буду присылать сводку на день — что нужно снять, что опубликовать и какие задачи горят.',
     {
       reply_markup: {
         inline_keyboard: [[{ text: '📋 Открыть приложение', web_app: { url: APP_URL } }]]
@@ -112,6 +135,9 @@ bot.onText(/^\/start/, (msg) => {
 });
 
 bot.on('message', async (msg) => {
+  // запоминаем chat_id при любом сообщении, чтобы знать, куда слать утреннюю сводку
+  upstashSet('bot-chat-id', String(msg.chat.id)).catch(() => {});
+
   if (!msg.text || msg.text.startsWith('/start')) return;
   const text = msg.text.trim();
   const norm = text.toLowerCase().replace(/ё/g, 'е');
@@ -150,7 +176,7 @@ bot.on('message', async (msg) => {
       });
       reply(msg.chat.id, `🗓 Добавила в контент-план: «${rest}»`);
     } else if (matched === 'shoot') {
-      const today = new Date().toISOString().slice(0, 10);
+      const today = getMoscowParts().dateStr;
       await addToList('content-items', {
         id: uid(), topic: rest, rubric: '', platforms: [], date: '', shootDate: today,
         script: '', shootList: [{ id: uid(), type: 'Видео', desc: rest, done: false }],
@@ -163,6 +189,52 @@ bot.on('message', async (msg) => {
     reply(msg.chat.id, 'Упс, не получилось сохранить — попробуй ещё раз через минутку 🙏');
   }
 });
+
+// ---------- ежедневная сводка в 10:00 по Москве ----------
+async function sendDailyDigest() {
+  const chatId = await upstashGet('bot-chat-id');
+  if (!chatId) { console.log('Нет chat_id — некому слать сводку.'); return; }
+
+  const todayStr = getMoscowParts().dateStr;
+  const checklist = await getList('checklist-items');
+  const contentItems = await getList('content-items');
+
+  const todayTasks = checklist.filter(t => !t.done && t.date === todayStr);
+  const todayPublish = contentItems.filter(it => !it.noPost && it.date === todayStr);
+  const todayShoot = contentItems.filter(it => !it.noPost && !it.filmed && it.shootDate === todayStr);
+
+  if (!todayTasks.length && !todayPublish.length && !todayShoot.length) {
+    bot.sendMessage(chatId, '☀️ Доброе утро! На сегодня ничего не запланировано — можно выдохнуть 🌿');
+    return;
+  }
+
+  let text = '☀️ Доброе утро! Вот план на сегодня:\n';
+  if (todayTasks.length) {
+    text += '\n📋 Задачи:\n' + todayTasks.map(t => `• ${t.text}`).join('\n') + '\n';
+  }
+  if (todayShoot.length) {
+    text += '\n🎥 Снять сегодня:\n' + todayShoot.map(it => `• ${it.topic}`).join('\n') + '\n';
+  }
+  if (todayPublish.length) {
+    text += '\n🚀 Опубликовать сегодня:\n' + todayPublish.map(it => `• ${it.topic}`).join('\n') + '\n';
+  }
+  bot.sendMessage(chatId, text.trim());
+}
+
+setInterval(async () => {
+  try {
+    const { dateStr, hour, minute } = getMoscowParts();
+    if (hour === 10 && minute === 0) {
+      const lastSent = await upstashGet('last-digest-date');
+      if (lastSent !== dateStr) {
+        await sendDailyDigest();
+        await upstashSet('last-digest-date', dateStr);
+      }
+    }
+  } catch (e) {
+    console.error('Ошибка проверки расписания:', e.message);
+  }
+}, 20 * 1000);
 
 app.listen(PORT, () => {
   console.log('Server running on port ' + PORT);
