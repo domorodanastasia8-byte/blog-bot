@@ -123,7 +123,8 @@ bot.onText(/^\/start/, async (msg) => {
       '• «Задачи ...» — добавлю в чек-лист\n' +
       '• «Идея ...» — добавлю в идеи\n' +
       '• «План ...» — добавлю в контент-план\n' +
-      '• «Съемка ...» — добавлю в съёмочный план\n\n' +
+      '• «Съемка ...» — добавлю в съёмочный план\n' +
+      '• «Сводка» — пришлю сегодняшний план прямо сейчас\n\n' +
       'Например: Задачи оформить инстаграм\n\n' +
       'Каждое утро в 10:00 по Москве буду присылать сводку на день — что нужно снять, что опубликовать и какие задачи горят.',
     {
@@ -141,6 +142,12 @@ bot.on('message', async (msg) => {
   if (!msg.text || msg.text.startsWith('/start')) return;
   const text = msg.text.trim();
   const norm = text.toLowerCase().replace(/ё/g, 'е');
+
+  if (/^сводк[а-я]*$/.test(norm)) {
+    await sendDailyDigest(msg.chat.id);
+    return;
+  }
+
   let matched = null;
   let rest = text;
 
@@ -191,8 +198,8 @@ bot.on('message', async (msg) => {
 });
 
 // ---------- ежедневная сводка в 10:00 по Москве ----------
-async function sendDailyDigest() {
-  const chatId = await upstashGet('bot-chat-id');
+async function sendDailyDigest(overrideChatId) {
+  const chatId = overrideChatId || await upstashGet('bot-chat-id');
   if (!chatId) { console.log('Нет chat_id — некому слать сводку.'); return; }
 
   const todayStr = getMoscowParts().dateStr;
