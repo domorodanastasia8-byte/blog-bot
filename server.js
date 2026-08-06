@@ -207,17 +207,32 @@ async function sendDailyDigest(overrideChatId) {
   const contentItems = await getList('content-items');
 
   const todayTasks = checklist.filter(t => !t.done && t.date === todayStr);
-  const todayPublish = contentItems.filter(it => !it.noPost && it.date === todayStr);
-  const todayShoot = contentItems.filter(it => !it.noPost && !it.filmed && it.shootDate === todayStr);
+  const overdueTasks = checklist.filter(t => !t.done && t.date && t.date < todayStr);
 
-  if (!todayTasks.length && !todayPublish.length && !todayShoot.length) {
-    bot.sendMessage(chatId, '☀️ Доброе утро! На сегодня ничего не запланировано — можно выдохнуть 🌿');
+  const todayShoot = contentItems.filter(it => !it.noPost && !it.filmed && it.shootDate === todayStr);
+  const overdueShoot = contentItems.filter(it => !it.noPost && !it.filmed && it.shootDate && it.shootDate < todayStr);
+
+  const todayPublish = contentItems.filter(it => !it.noPost && !it.published && it.date === todayStr);
+  const overduePublish = contentItems.filter(it => !it.noPost && !it.published && it.date && it.date < todayStr);
+
+  const hasAnything = todayTasks.length || overdueTasks.length || todayShoot.length || overdueShoot.length || todayPublish.length || overduePublish.length;
+
+  if (!hasAnything) {
+    bot.sendMessage(chatId, '☀️ Доброе утро! На сегодня ничего не запланировано и долгов нет — можно выдохнуть 🌿');
     return;
   }
 
   let text = '☀️ Доброе утро! Вот план на сегодня:\n';
+
+  if (overdueTasks.length || overdueShoot.length || overduePublish.length) {
+    text += '\n⚠️ Просрочено:\n';
+    if (overdueTasks.length) text += overdueTasks.map(t => `• Задача: ${t.text} (была на ${t.date})`).join('\n') + '\n';
+    if (overdueShoot.length) text += overdueShoot.map(it => `• Снять: ${it.topic} (было на ${it.shootDate})`).join('\n') + '\n';
+    if (overduePublish.length) text += overduePublish.map(it => `• Опубликовать: ${it.topic} (было на ${it.date})`).join('\n') + '\n';
+  }
+
   if (todayTasks.length) {
-    text += '\n📋 Задачи:\n' + todayTasks.map(t => `• ${t.text}`).join('\n') + '\n';
+    text += '\n📋 Задачи на сегодня:\n' + todayTasks.map(t => `• ${t.text}`).join('\n') + '\n';
   }
   if (todayShoot.length) {
     text += '\n🎥 Снять сегодня:\n' + todayShoot.map(it => `• ${it.topic}`).join('\n') + '\n';
@@ -225,6 +240,7 @@ async function sendDailyDigest(overrideChatId) {
   if (todayPublish.length) {
     text += '\n🚀 Опубликовать сегодня:\n' + todayPublish.map(it => `• ${it.topic}`).join('\n') + '\n';
   }
+
   bot.sendMessage(chatId, text.trim());
 }
 
