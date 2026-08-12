@@ -68,16 +68,38 @@ async function getList(key) {
 function getMoscowParts() {
   const fmt = new Intl.DateTimeFormat('en-US', {
     timeZone: 'Europe/Moscow', hour12: false,
-    year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit'
+    year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', weekday: 'short'
   });
   const map = {};
   fmt.formatToParts(new Date()).forEach(p => { map[p.type] = p.value; });
   return {
     dateStr: `${map.year}-${map.month}-${map.day}`,
     hour: parseInt(map.hour, 10),
-    minute: parseInt(map.minute, 10)
+    minute: parseInt(map.minute, 10),
+    weekday: map.weekday // 'Sun', 'Mon', ...
   };
 }
+function getMoscowWeekRange() {
+  const { dateStr } = getMoscowParts();
+  const d = new Date(dateStr + 'T00:00:00');
+  const offset = (d.getDay() + 6) % 7;
+  const monday = new Date(d); monday.setDate(d.getDate() - offset);
+  const sunday = new Date(monday); sunday.setDate(monday.getDate() + 6);
+  const toStr = dt => `${dt.getFullYear()}-${String(dt.getMonth() + 1).padStart(2, '0')}-${String(dt.getDate()).padStart(2, '0')}`;
+  return { mondayStr: toStr(monday), sundayStr: toStr(sunday) };
+}
+const MONTH_SHORT = ['янв', 'фев', 'мар', 'апр', 'мая', 'июн', 'июл', 'авг', 'сен', 'окт', 'ноя', 'дек'];
+function formatShort(dateStr) {
+  const d = new Date(dateStr + 'T00:00:00');
+  return `${d.getDate()} ${MONTH_SHORT[d.getMonth()]}`;
+}
+const RUBRICS = [
+  { key: 'dare', label: 'Тихая дерзость' },
+  { key: 'dopamine', label: 'Дофаминовые радости' },
+  { key: 'kitchen', label: 'Ночная кухня' },
+  { key: 'shelf', label: 'Раскладываю по полочкам' }
+];
+const PLATFORMS = ['Telegram', 'Instagram', 'YouTube'];
 
 // ---------- API для мини-приложения (повторяет window.storage) ----------
 app.get('/api/storage/:key', async (req, res) => {
@@ -124,9 +146,10 @@ bot.onText(/^\/start/, async (msg) => {
       '• «Идея ...» — добавлю в идеи\n' +
       '• «План ...» — добавлю в контент-план\n' +
       '• «Съемка ...» — добавлю в съёмочный план\n' +
-      '• «Сводка» — пришлю сегодняшний план прямо сейчас\n\n' +
+      '• «Сводка» — пришлю сегодняшний план прямо сейчас\n' +
+      '• «Итоги» — пришлю сводку за неделю прямо сейчас\n\n' +
       'Например: Задачи оформить инстаграм\n\n' +
-      'Каждое утро в 10:00 по Москве буду присылать сводку на день — что нужно снять, что опубликовать и какие задачи горят.',
+      'Каждое утро в 10:00 по Москве буду присылать сводку на день, а по воскресеньям в 20:00 — итоги недели (как в дашборде мини-приложения).',
     {
       reply_markup: {
         inline_keyboard: [[{ text: '📋 Открыть приложение', web_app: { url: APP_URL } }]]
@@ -145,6 +168,10 @@ bot.on('message', async (msg) => {
 
   if (/^сводк[а-я]*$/.test(norm)) {
     await sendDailyDigest(msg.chat.id);
+    return;
+  }
+  if (/^итог[а-я]*$/.test(norm)) {
+    await sendWeeklyDigest(msg.chat.id);
     return;
   }
 
@@ -244,14 +271,95 @@ async function sendDailyDigest(overrideChatId) {
   bot.sendMessage(chatId, text.trim());
 }
 
+// ---------- недельная сводка по воскресеньям в 20:00 по Москве ----------
+async function sendWeeklyDigest(overrideChatId) {
+  const chatId = overrideChatId || await upstashGet('bot-chat-id');
+  if (!chatId) { console.log('Нет chat_id — некому слать сводку недели.'); return; }
+
+  const { mondayStr, sundayStr } = getMoscowWeekRange();
+  const inWeek = d => !!d && d >= mondayStr && d <= sundayStr;
+
+  const checklist = await getList('checklist-items');
+  const contentItems = await getList('content-items');
+  const ideas = await getList('ideas');
+  const analyticsEntries = await getList('analytics-entries');
+  const postAnalytics = await getList('post-analytics');
+  const promotions = await getList('promotions');
+
+  const planItems = contentItems.filter(it => !it.noPost);
+  const periodPublished = planItems.filter(it => it.published && inWeek(it.publishedAt || it.date));
+  const periodDoneTasks = checklist.filter(t => t.done && inWeek(t.completedAt || t.date));
+  const periodRealizedIdeas = ideas.filter(i => i.realized && inWeek(i.realizedAt));
+
+  const platformLatest = {};
+  PLATFORMS.forEach(p => {
+    const entries = analyticsEntries.filter(e => e.platform === p).sort((a, b) => (a.date || '').localeCompare(b.date || ''));
+    const weekEntries = entries.filter(e => inWeek(e.date));
+    if (weekEntries.length) {
+      const latest = weekEntries[weekEntries.length - 1];
+      const idx = entries.indexOf(latest);
+      const prev = idx > 0 ? entries[idx - 1] : null;
+      const delta = (prev && latest.followers != null && prev.followers != null) ? latest.followers - prev.followers : null;
+      platformLatest[p] = { followers: latest.followers, delta };
+    }
+  });
+
+  const weekPosts = postAnalytics.filter(p => inWeek(p.date));
+  const topPosts = weekPosts.slice().sort((a, b) => (b.views || 0) - (a.views || 0)).slice(0, 3);
+
+  const periodRubricItems = planItems.filter(it => inWeek(it.publishedAt || it.date));
+  const rubricCounts = {}; RUBRICS.forEach(r => rubricCounts[r.key] = 0);
+  periodRubricItems.forEach(it => { if (it.rubric && rubricCounts[it.rubric] !== undefined) rubricCounts[it.rubric]++; });
+  const rubricTotal = periodRubricItems.length || 1;
+
+  const weekPromos = promotions.filter(p => inWeek(p.date));
+  const promoCost = weekPromos.reduce((s, p) => s + (p.cost || 0), 0);
+  const promoSubs = weekPromos.reduce((s, p) => s + (p.subscribers || 0), 0);
+
+  let text = `📊 Итоги недели: ${formatShort(mondayStr)} – ${formatShort(sundayStr)}\n\n`;
+  text += 'Общая сводка:\n';
+  text += `• Опубликовано постов: ${periodPublished.length}\n`;
+  text += `• Задач закрыто: ${periodDoneTasks.length}\n`;
+  text += `• Идей реализовано: ${periodRealizedIdeas.length}\n`;
+
+  const platLines = PLATFORMS.filter(p => platformLatest[p]).map(p => {
+    const e = platformLatest[p];
+    const d = e.delta != null ? ` (${e.delta >= 0 ? '+' : ''}${e.delta})` : '';
+    return `• ${p}: ${e.followers ?? '—'} подписчиков${d}`;
+  });
+  if (platLines.length) text += '\nАналитика по площадкам:\n' + platLines.join('\n') + '\n';
+
+  if (topPosts.length) {
+    text += '\nЛучшие публикации:\n' + topPosts.map((p, i) => `${i + 1}. «${p.topic || 'без темы'}» — ${p.views ?? 0} просмотров (${p.platform || '—'})`).join('\n') + '\n';
+  }
+
+  const rubLines = RUBRICS.filter(r => rubricCounts[r.key] > 0).map(r => `• ${r.label}: ${Math.round(rubricCounts[r.key] / rubricTotal * 100)}%`);
+  if (rubLines.length) text += '\nБаланс рубрик:\n' + rubLines.join('\n') + '\n';
+
+  if (weekPromos.length) {
+    text += `\nПродвижение:\n• Потрачено: ${promoCost}\n• Новых подписчиков: ${promoSubs}\n`;
+  }
+
+  text += '\nХорошей новой недели! 🌸';
+
+  bot.sendMessage(chatId, text.trim());
+}
+
 setInterval(async () => {
   try {
-    const { dateStr, hour, minute } = getMoscowParts();
+    const { dateStr, hour, minute, weekday } = getMoscowParts();
     if (hour === 10 && minute === 0) {
       const lastSent = await upstashGet('last-digest-date');
       if (lastSent !== dateStr) {
         await sendDailyDigest();
         await upstashSet('last-digest-date', dateStr);
+      }
+    }
+    if (weekday === 'Sun' && hour === 20 && minute === 0) {
+      const lastWeekly = await upstashGet('last-weekly-digest-date');
+      if (lastWeekly !== dateStr) {
+        await sendWeeklyDigest();
+        await upstashSet('last-weekly-digest-date', dateStr);
       }
     }
   } catch (e) {
