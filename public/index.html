@@ -81,11 +81,7 @@ html,body{margin:0;padding:0;overflow-x:hidden;background:#FFFFFF;}
 .streak-bar{display:flex;gap:3px;height:12px;border-radius:8px;overflow:hidden;}
 .streak-seg{flex:1;background:var(--muted-soft);}
 .streak-seg.hit{background:var(--gold);}
-.streak-seg.missed{background:#8B2F55;}
-.streak-popup-overlay{position:fixed;inset:0;background:rgba(43,27,20,.45);display:flex;align-items:center;justify-content:center;z-index:10000;padding:20px;}
-.streak-popup-card{background:var(--card);border-radius:20px;padding:28px 24px;max-width:320px;text-align:center;box-shadow:0 8px 24px rgba(53,50,65,.08);}
-.streak-popup-emoji{font-size:36px;margin-bottom:10px;}
-.streak-popup-text{font-family:'Plus Jakarta Sans',sans-serif;font-weight:700;font-size:16px;color:var(--ink);margin-bottom:18px;line-height:1.4;}
+.streak-seg.missed{background:#21164c;}
 .wish-popup-overlay{position:fixed;inset:0;background:rgba(43,27,20,.45);display:flex;align-items:center;justify-content:center;z-index:10000;padding:20px;}
 .wish-flower-wrap{position:relative;width:290px;max-width:88vw;aspect-ratio:1/1;filter:drop-shadow(0 10px 24px rgba(0,0,0,.28));}
 .wish-flower-svg{width:100%;height:100%;display:block;}
@@ -191,7 +187,7 @@ textarea{width:100%;resize:vertical;min-height:64px;margin-top:8px;}
 .rubric-dot{font-size:11px;padding:4px 9px;border-radius:999px;cursor:pointer;margin-right:6px;margin-bottom:6px;display:inline-block;opacity:.5;transition:opacity .15s;}
 .rubric-dot.active{opacity:1;outline:2px solid rgba(42,32,41,.15);}
 .idea-board{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:18px;margin-top:22px;}
-.idea-card{background:var(--card);border-radius:26px;padding:14px 14px 12px;box-shadow:0 2px 8px rgba(53,50,65,.06);position:relative;}
+.idea-card{background:var(--gold-soft);border-radius:26px;padding:14px 14px 12px;box-shadow:0 2px 8px rgba(53,50,65,.06);position:relative;}
 .idea-card:nth-child(4n+1){transform:rotate(-0.6deg);}
 .idea-card:nth-child(4n+2){transform:rotate(0.5deg);}
 .idea-card:nth-child(4n+3){transform:rotate(-0.3deg);}
@@ -288,13 +284,14 @@ textarea{width:100%;resize:vertical;min-height:64px;margin-top:8px;}
 .ic-topic:hover{color:var(--plum);border-bottom-color:var(--plum);}
 .ic-topic-input{font-family:'Plus Jakarta Sans',sans-serif;font-size:15.5px;font-weight:600;color:var(--ink);line-height:1.35;width:100%;border:2px solid var(--plum);border-radius:8px;padding:4px 8px;background:var(--card);}
 .ic-meta{font-size:12px;color:var(--muted);margin-bottom:10px;}
+.ic-description{font-size:12.5px;color:var(--ink-soft);margin:-4px 0 10px;line-height:1.5;font-style:italic;}
 .plat-tag{font-size:10.5px;padding:2px 8px;border-radius:999px;background:none;border:1px solid var(--ink-soft);color:var(--ink-soft);margin-right:3px;}
 .ic-actions{display:flex;gap:16px;}
 .ic-actions button{background:none;border:none;padding:0;font-size:12px;color:var(--muted);cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;}
-.ic-actions button.edit{color:var(--slate);font-weight:600;}
+.ic-actions button.edit{color:var(--ink);font-weight:600;text-decoration:underline;}
 .stage-stepper{display:flex;align-items:center;flex-shrink:0;}
 .stage-dot{width:22px;height:22px;border-radius:50%;border:2px solid var(--line);background:var(--card);font-size:10px;font-weight:700;color:var(--muted);cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0;flex-shrink:0;font-family:'Plus Jakarta Sans',sans-serif;}
-.stage-dot.done{background:var(--teal);border-color:var(--teal);color:#fff;}
+.stage-dot.done{background:var(--ink);border-color:var(--ink);color:#fff;}
 .stage-line{width:9px;height:2px;background:var(--line);flex-shrink:0;}
 .stage-line.done{background:var(--teal);}
 .edit-fields{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px;margin-bottom:8px;}
@@ -311,7 +308,7 @@ textarea{width:100%;resize:vertical;min-height:64px;margin-top:8px;}
 .shoot-task{display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--line);font-size:13px;}
 .shoot-task input[type=checkbox]{width:15px;height:15px;accent-color:var(--teal);flex-shrink:0;}
 .shoot-task.done .shoot-desc{color:var(--muted);text-decoration:line-through;}
-.shoot-type-tag{font-size:10.5px;padding:2px 8px;border-radius:999px;background:var(--slate-soft);color:var(--slate);white-space:nowrap;flex-shrink:0;}
+.shoot-type-tag{font-size:10.5px;padding:2px 8px;border-radius:999px;background:var(--muted-soft);color:var(--ink-soft);white-space:nowrap;flex-shrink:0;}
 .shoot-desc{flex:1;}
 .shoot-add-row{display:flex;gap:6px;margin-top:8px;flex-wrap:wrap;align-items:center;}
 .shoot-add-row select{font-size:12px;padding:6px 8px;}
@@ -744,17 +741,6 @@ function computeStreakThermometer(){
   }
   return { segs, hits, dayInCycle };
 }
-function showStreakPopup(message){
-  const overlay = document.createElement('div');
-  overlay.className = 'streak-popup-overlay';
-  overlay.innerHTML = `<div class="streak-popup-card">
-    <div class="streak-popup-emoji">🎉</div>
-    <div class="streak-popup-text">${escapeHtml(message)}</div>
-    <button class="btn" onclick="this.closest('.streak-popup-overlay').remove()">Спасибо!</button>
-  </div>`;
-  document.body.appendChild(overlay);
-  fireConfetti();
-}
 const DAILY_WISHES = [
   'Пусть сегодня слова придут сами, а тревога — нет',
   'Сегодня отличный день, чтобы быть чуть смелее вчерашней себя',
@@ -821,7 +807,11 @@ async function maybeShowDailyWish(){
   } catch(e){ lastShown = null; }
   if(lastShown === todayStr) return;
   try{ await window.storage.set('last-wish-date', todayStr); } catch(e){}
-  showWishPopup(getDailyWish());
+  const isCelebration = !!pendingCelebration;
+  const message = pendingCelebration || getDailyWish();
+  pendingCelebration = null;
+  showWishPopup(message);
+  if(isCelebration) fireConfetti();
 }
 function renderMotivation(){
   const el = document.getElementById('motivation-strip');
@@ -836,11 +826,6 @@ function renderMotivation(){
     <div class="streak-label">День ${therm.dayInCycle+1} из 7 · опубликовано ${therm.hits} ${pluralPosts(therm.hits)} на этой неделе</div>
     <div class="streak-bar">${segsHtml}</div>
   `;
-  if(pendingCelebration){
-    const msg = pendingCelebration;
-    pendingCelebration = null;
-    setTimeout(()=>showStreakPopup(msg), 300);
-  }
 }
 
 /* ---------- dashboard ---------- */
@@ -1424,6 +1409,11 @@ function togglePromote(id){
 function confirmPromote(id){
   const idea = ideas.find(i=>i.id===id);
   if(!idea) return;
+  const topic = document.getElementById('promote-topic-'+id).value.trim();
+  if(!topic){
+    alert('Впиши тему поста — идея сама по себе уйдёт в описание');
+    return;
+  }
   const rubric = document.getElementById('promote-rubric-'+id).value;
   const date = document.getElementById('promote-date-'+id).value;
   const platforms = [];
@@ -1431,7 +1421,7 @@ function confirmPromote(id){
   if(document.getElementById('promote-ig-'+id).checked) platforms.push('Instagram');
   if(document.getElementById('promote-yt-'+id).checked) platforms.push('YouTube');
   const shootDate = date ? subtractDays(date,2) : '';
-  contentItems.push({id:uid(), topic:idea.text, rubric, platforms, date, shootDate, script:'', caption:'', format:suggestFormat(platforms), shootList:[], scriptWritten:false, filmed:false, edited:false, published:false});
+  contentItems.push({id:uid(), topic, description:idea.text, rubric, platforms, date, shootDate, script:'', caption:'', format:suggestFormat(platforms), shootList:[], scriptWritten:false, filmed:false, edited:false, published:false});
   ideas = ideas.filter(i=>i.id!==id);
   ideaPromoting.delete(id);
   saveData('ideas', ideas);
@@ -1459,6 +1449,7 @@ function renderIdeas(){
     let promotePanel = '';
     if(isPromoting){
       promotePanel = `<div class="idea-promote-panel">
+        <input type="text" id="promote-topic-${idea.id}" placeholder="Тема поста" style="width:100%;margin-bottom:8px;">
         <div class="edit-fields">
           <select id="promote-rubric-${idea.id}">
             ${RUBRICS.map(rr=>`<option value="${rr.key}" ${rr.key===idea.rubric?'selected':''}>${rr.label}</option>`).join('')}
@@ -1476,7 +1467,8 @@ function renderIdeas(){
     const textHtml = ideaTextEditing.has(idea.id)
       ? `<textarea id="idea-edit-${idea.id}" class="idea-text-input" onblur="saveIdeaEdit('${idea.id}', this.value)">${escapeHtml(idea.text)}</textarea>`
       : `<div class="idea-text-display" onclick="startIdeaEdit('${idea.id}')">${escapeHtml(idea.text)}</div>`;
-    return `<div class="idea-card ${idea.realized?'realized':''}">
+    const cardBg = idea.rubric ? rubricDisplay(idea.rubric).bg : 'var(--gold-soft)';
+    return `<div class="idea-card ${idea.realized?'realized':''}" style="background:${cardBg};">
       <button class="idea-delete" onclick="deleteIdea('${idea.id}')" title="Удалить">×</button>
       ${textHtml}
       <div class="idea-actions">
@@ -1560,6 +1552,7 @@ function renderItemCard(it){
           <option value="photo" ${it.format==='photo'?'selected':''}>📷 Фото</option>
         </select>
       </div>
+      <textarea placeholder="Описание (детали, из которых родилась тема)..." onchange="updateItemField('${it.id}','description',this.value)">${escapeHtml(it.description||'')}</textarea>
       <div class="platform-checks" style="margin-bottom:6px;">
         ${PLATFORMS.map(p=>`<label><input type="checkbox" ${(it.platforms||[]).includes(p)?'checked':''} onchange="togglePlatform('${it.id}','${p}',this.checked)"> ${p}</label>`).join('')}
       </div>
@@ -1588,6 +1581,7 @@ function renderItemCard(it){
       ? `<input type="text" id="topic-edit-${it.id}" class="ic-topic-input" value="${escapeHtml(it.topic)}" onblur="saveTopicEdit('${it.id}', this.value)" onkeydown="if(event.key==='Enter'){this.blur();}">`
       : `<div class="ic-topic" onclick="startTopicEdit('${it.id}')">${escapeHtml(it.topic)}</div>`}</div>
     <div class="ic-meta">${platTags || 'без площадки'}${it.date? ' · '+it.date : ' · дата не выбрана'}</div>
+    ${it.description? `<div class="ic-description">${escapeHtml(it.description)}</div>` : ''}
     <div class="ic-actions">
       <button onclick="togglePlanItem('${it.id}')" class="edit">${isOpen? 'Свернуть' : 'Редактировать тему'}</button>
       <button onclick="deleteContentItem('${it.id}')">Удалить</button>
@@ -1947,7 +1941,7 @@ function renderShootCard(it){
     <div class="shoot-box-label">${textFieldLabel}</div>
     ${isTextOpen
       ? `<textarea placeholder="${isVideo? 'Сценарий ролика...' : 'Текст, который пойдёт в пост...'}" onchange="${textFieldSaveFn}('${it.id}', this.value)">${escapeHtml(textFieldValue)}</textarea>`
-      : `<button class="del" style="color:var(--slate);" onclick="toggleShootScript('${it.id}')">${hasText? 'Открыть' : '+ Написать'}</button>`}
+      : `<button class="del" style="color:var(--ink);text-decoration:underline;" onclick="toggleShootScript('${it.id}')">${hasText? 'Открыть' : '+ Написать'}</button>`}
   </div>`;
 
   const headTop = it.noPost
