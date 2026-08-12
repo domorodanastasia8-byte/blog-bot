@@ -336,6 +336,10 @@ textarea{width:100%;resize:vertical;min-height:64px;margin-top:8px;}
 .metric-item-label{font-size:9px;text-transform:uppercase;letter-spacing:.03em;color:var(--muted);margin-bottom:4px;}
 .metric-item input{width:100%;border:none;background:none;padding:0;font-size:14px;font-weight:600;color:var(--ink);font-family:'Plus Jakarta Sans',sans-serif;}
 .metric-item input:focus{outline:none;}
+.compare-grid{display:grid;grid-template-columns:1.2fr 1fr 1fr;gap:6px 10px;margin-top:12px;align-items:center;font-size:12.5px;}
+.compare-head{font-weight:700;color:var(--ink-soft);font-size:10.5px;text-align:center;text-transform:uppercase;}
+.compare-label{color:var(--ink-soft);}
+.compare-grid input[type=number]{width:100%;padding:5px 6px;font-size:12px;}
 .pa-nums{display:flex;gap:12px;flex-wrap:wrap;margin-top:8px;}
 .pa-nums label{display:flex;align-items:center;gap:5px;font-size:12.5px;color:var(--ink-soft);}
 .pa-nums input[type=number]{width:74px;padding:5px 8px;font-size:12.5px;}
@@ -981,9 +985,11 @@ function renderDashboard(){
 
   const periodPosts = postAnalytics.filter(p=>inPeriod(p.date));
   const periodPromos = promotions.filter(p=>inPeriod(p.date));
-  const promoCost = periodPromos.reduce((s,p)=>s+(p.cost||0),0);
-  const promoSubs = periodPromos.reduce((s,p)=>s+(p.subscribers||0),0);
+  const periodCampaigns = adCampaigns.filter(c=>inPeriod(c.date));
+  const promoCost = periodPromos.reduce((s,p)=>s+(p.cost||0),0) + periodCampaigns.reduce((s,c)=>s+((c.actualCost!=null?c.actualCost:c.budget)||0),0);
+  const promoSubs = periodPromos.reduce((s,p)=>s+(p.subscribers||0),0) + periodCampaigns.reduce((s,c)=>s+(c.actualSubs||0),0);
   const promoCps = promoSubs>0 ? +(promoCost/promoSubs).toFixed(2) : null;
+  const hasPromoActivity = periodPromos.length>0 || periodCampaigns.length>0;
   const topPosts = PLATFORMS.map(plat=>{
     const platPosts = periodPosts.filter(p=>p.platform===plat);
     if(platPosts.length===0) return null;
@@ -1032,7 +1038,7 @@ function renderDashboard(){
   if(!anyPlatformData) attention.push(`Аналитика по площадкам не заполнена ${periodLabel()} — впиши цифры подписчиков, чтобы видеть рост`);
   const publishedWithoutStats = periodPublished.filter(it=>!postAnalytics.some(pa=>pa.contentItemId===it.id && (pa.views!=null || pa.reach!=null)));
   if(publishedWithoutStats.length>0) attention.push(`У ${publishedWithoutStats.length} ${pluralPosts(publishedWithoutStats.length)} нет статистики просмотров — загляни в «Аналитика → По публикациям»`);
-  if(periodPromos.length===0 && periodPublished.length>0) attention.push(`Платного продвижения ${periodLabel()} не было — это нормально, но если планируешь рекламу, не забудь потом внести данные`);
+  if(!hasPromoActivity && periodPublished.length>0) attention.push(`Платного продвижения ${periodLabel()} не было — это нормально, но если планируешь рекламу, не забудь потом внести данные`);
   if(good.length===0) good.push('Пока данных маловато для выводов — заполни чек-лист и контент-план');
 
   const fromD = new Date(dashCustomFrom+'T00:00:00');
@@ -1111,7 +1117,7 @@ function renderDashboard(){
 
     <div class="dash-section">
       <h2>Продвижение</h2>
-      ${periodPromos.length===0
+      ${!hasPromoActivity
         ? `<div class="empty">Нет платного продвижения ${periodLabel()}</div>`
         : `<div class="dash-row">
             <div class="dash-card"><div class="dash-card-name">Потрачено</div><div class="dash-card-num">${promoCost}</div></div>
@@ -2279,12 +2285,80 @@ function deletePostAnalytics(id){
 /* ---------- promotion ---------- */
 let promotions = [];
 let promoPlans = [];
+let adCampaignPlans = [];
+let adCampaigns = [];
 let promoFilter = '';
 let promoMode = 'plan';
+let promoType = 'bloggers';
 let promoAddOpen = false;
 function setPromoFilter(p){ promoFilter = p; renderPromotions(); }
 function setPromoMode(m){ promoMode = m; promoAddOpen = false; renderPromotions(); }
+function setPromoType(t){ promoType = t; promoAddOpen = false; renderPromotions(); }
 function togglePromoAddForm(){ promoAddOpen = !promoAddOpen; renderPromotions(); }
+function campaignCostPerClick(budget, clicks){ return (budget && clicks) ? +(budget/clicks).toFixed(2) : null; }
+function campaignCostPerSub(budget, subs){ return (budget && subs) ? +(budget/subs).toFixed(2) : null; }
+function addAdCampaignPlan(){
+  const budget = document.getElementById('ac-budget').value;
+  if(!budget) return;
+  const date = document.getElementById('ac-date').value;
+  const plannedReach = document.getElementById('ac-reach').value;
+  const plannedClicks = document.getElementById('ac-clicks').value;
+  const plannedSubs = document.getElementById('ac-subs').value;
+  const creative = document.getElementById('ac-creative').value.trim();
+  adCampaignPlans.push({
+    id: uid(), targetPlatform: 'Instagram', date,
+    budget: Number(budget),
+    plannedReach: plannedReach?Number(plannedReach):null,
+    plannedClicks: plannedClicks?Number(plannedClicks):null,
+    plannedSubs: plannedSubs?Number(plannedSubs):null,
+    creative
+  });
+  saveData('ad-campaign-plans', adCampaignPlans);
+  promoAddOpen = false;
+  renderPromotions();
+}
+function updateAdCampaignPlan(id, field, val, isNumber){
+  const p = adCampaignPlans.find(x=>x.id===id);
+  if(!p) return;
+  p[field] = isNumber ? (val===''?null:Number(val)) : val;
+  saveData('ad-campaign-plans', adCampaignPlans);
+  renderPromotions();
+}
+function deleteAdCampaignPlan(id){
+  adCampaignPlans = adCampaignPlans.filter(x=>x.id!==id);
+  saveData('ad-campaign-plans', adCampaignPlans);
+  renderPromotions();
+}
+function launchAdCampaign(id){
+  const p = adCampaignPlans.find(x=>x.id===id);
+  if(!p) return;
+  adCampaigns.push({
+    id: uid(), targetPlatform: p.targetPlatform, date: p.date || toDateStr(new Date()),
+    budget: p.budget, plannedReach: p.plannedReach, plannedClicks: p.plannedClicks, plannedSubs: p.plannedSubs,
+    creative: p.creative,
+    actualCost: null, actualReach: null, actualClicks: null, actualSubs: null
+  });
+  adCampaignPlans = adCampaignPlans.filter(x=>x.id!==id);
+  saveData('ad-campaign-plans', adCampaignPlans);
+  saveData('ad-campaigns', adCampaigns);
+  promoMode = 'fact';
+  renderPromotions();
+  renderDashboard();
+}
+function updateAdCampaign(id, field, val, isNumber){
+  const c = adCampaigns.find(x=>x.id===id);
+  if(!c) return;
+  c[field] = isNumber ? (val===''?null:Number(val)) : val;
+  saveData('ad-campaigns', adCampaigns);
+  renderPromotions();
+  renderDashboard();
+}
+function deleteAdCampaign(id){
+  adCampaigns = adCampaigns.filter(x=>x.id!==id);
+  saveData('ad-campaigns', adCampaigns);
+  renderPromotions();
+  renderDashboard();
+}
 function costPerSub(p){
   if(!p.cost || !p.subscribers) return null;
   return +(p.cost/p.subscribers).toFixed(2);
@@ -2301,9 +2375,10 @@ function addPromotion(){
   const cost = document.getElementById('promo-cost').value;
   const reach = document.getElementById('promo-reach').value;
   const subs = document.getElementById('promo-subs').value;
+  const creative = document.getElementById('promo-creative').value.trim();
   promotions.push({
     id:uid(), source, platform, date,
-    cost: cost?Number(cost):null, reach: reach?Number(reach):null, subscribers: subs?Number(subs):null
+    cost: cost?Number(cost):null, reach: reach?Number(reach):null, subscribers: subs?Number(subs):null, creative
   });
   saveData('promotions', promotions);
   promoAddOpen = false;
@@ -2336,12 +2411,13 @@ function addPromoPlan(){
   const manager = document.getElementById('pp-manager').value.trim();
   const cost = document.getElementById('pp-cost').value;
   const note = document.getElementById('pp-note').value.trim();
+  const creative = document.getElementById('pp-creative').value.trim();
   promoPlans.push({
     id: uid(), channel, topic, targetPlatform,
     subscribers: subscribers?Number(subscribers):null,
     avgReach: avgReach?Number(avgReach):null,
     er: er?Number(er):null,
-    manager, cost: cost?Number(cost):null, note
+    manager, cost: cost?Number(cost):null, note, creative
   });
   saveData('promo-plans', promoPlans);
   promoAddOpen = false;
@@ -2364,7 +2440,7 @@ function convertPromoPlanToFact(id){
   if(!p) return;
   promotions.push({
     id: uid(), source: p.channel, platform: p.targetPlatform, date: '',
-    cost: p.cost, reach: null, subscribers: null
+    cost: p.cost, reach: null, subscribers: null, creative: p.creative||''
   });
   promoPlans = promoPlans.filter(x=>x.id!==id);
   saveData('promo-plans', promoPlans);
@@ -2381,6 +2457,16 @@ function renderPromotions(){
     <button class="chip-btn ${promoMode==='plan'?'active':''}" onclick="setPromoMode('plan')">План</button>
     <button class="chip-btn ${promoMode==='fact'?'active':''}" onclick="setPromoMode('fact')">Факт</button>
   </div>`;
+
+  const typeRow = `<div class="chip-row" style="margin-bottom:14px;">
+    <button class="chip-btn ${promoType==='bloggers'?'active':''}" onclick="setPromoType('bloggers')">Блогеры и посевы</button>
+    <button class="chip-btn ${promoType==='campaign'?'active':''}" onclick="setPromoType('campaign')">Рекламная кампания</button>
+  </div>`;
+
+  if(promoType==='campaign'){
+    container.innerHTML = modeRow + typeRow + renderCampaignSection();
+    return;
+  }
 
   const filterRow = `<div class="chip-row" style="margin-bottom:14px;">
     <button class="chip-btn ${promoFilter===''?'active':''}" onclick="setPromoFilter('')">Все</button>
@@ -2404,6 +2490,7 @@ function renderPromotions(){
           <input type="number" id="pp-cost" placeholder="Стоимость (пусто = ждём ответ)">
         </div>
         <textarea id="pp-note" placeholder="Комментарий..." style="margin-bottom:8px;"></textarea>
+        <textarea id="pp-creative" placeholder="Что даём на продвижение: текст / рекламный посыл..." style="margin-bottom:8px;"></textarea>
         <button class="btn" style="margin-top:0;" onclick="addPromoPlan()">Добавить в план</button>
       </div>`;
     } else {
@@ -2416,7 +2503,8 @@ function renderPromotions(){
           <input type="number" id="promo-reach" placeholder="Охват">
           <input type="number" id="promo-subs" placeholder="Подписчики">
         </div>
-        <button class="btn" style="margin-top:8px;" onclick="addPromotion()">Добавить в факт</button>
+        <textarea id="promo-creative" placeholder="Что даём на продвижение: текст / рекламный посыл..." style="margin-bottom:8px;"></textarea>
+        <button class="btn" style="margin-top:0;" onclick="addPromotion()">Добавить в факт</button>
       </div>`;
     }
   }
@@ -2458,6 +2546,7 @@ function renderPromotions(){
             ${cpc? ` &nbsp;·&nbsp; цена клика прогноз: <strong>${cpc}</strong>` : ''}
           </div>
           <textarea placeholder="Комментарий..." onchange="updatePromoPlan('${p.id}','note',this.value,false)">${escapeHtml(p.note||'')}</textarea>
+          ${p.creative? `<div class="ic-description">${escapeHtml(p.creative)}</div>` : ''}
           <button class="btn-ghost" style="margin-top:10px;" onclick="convertPromoPlanToFact('${p.id}')">Разместили →</button>
         </div>`;
       }).join('');
@@ -2496,12 +2585,92 @@ function renderPromotions(){
             <label>👥 <input type="number" value="${p.subscribers ?? ''}" placeholder="подписчики" onchange="updatePromotion('${p.id}','subscribers',this.value)"></label>
           </div>
           <div style="font-size:12.5px;color:var(--ink-soft);margin-top:8px;">Цена подписчика: <strong>${cps!=null? cps : '—'}</strong></div>
+          ${p.creative? `<div class="ic-description">${escapeHtml(p.creative)}</div>` : ''}
         </div>`;
       }).join('');
     }
   }
 
-  container.innerHTML = modeRow + filterRow + addToggle + addPanel + bodyHtml;
+  container.innerHTML = modeRow + typeRow + filterRow + addToggle + addPanel + bodyHtml;
+}
+function renderCampaignSection(){
+  const addToggle = `<button class="btn-ghost" onclick="togglePromoAddForm()">${promoAddOpen? '× Свернуть' : '+ Новая кампания'}</button>`;
+
+  let addPanel = '';
+  if(promoAddOpen && promoMode==='plan'){
+    addPanel = `<div class="plan-panel">
+      <div class="edit-fields">
+        <input type="number" id="ac-budget" placeholder="Бюджет">
+        <input type="date" id="ac-date">
+        <input type="number" id="ac-reach" placeholder="План охват">
+        <input type="number" id="ac-clicks" placeholder="План кликов">
+        <input type="number" id="ac-subs" placeholder="План подписчиков">
+      </div>
+      <textarea id="ac-creative" placeholder="Что даём на продвижение: текст / рекламный посыл..." style="margin-bottom:8px;"></textarea>
+      <button class="btn" onclick="addAdCampaignPlan()">Добавить кампанию</button>
+    </div>`;
+  } else if(promoAddOpen && promoMode==='fact'){
+    addPanel = `<div class="empty">Новые кампании заводятся в «План», а сюда попадают после запуска.</div>`;
+  }
+
+  let body = '';
+  if(promoMode==='plan'){
+    if(adCampaignPlans.length===0){
+      body = '<div class="empty">Пока нет запланированных кампаний — добавь первую выше.</div>';
+    } else {
+      body = adCampaignPlans.slice().reverse().map(p=>{
+        const cpc = campaignCostPerClick(p.budget, p.plannedClicks);
+        const cps = campaignCostPerSub(p.budget, p.plannedSubs);
+        return `<div class="an-row">
+          <div class="an-row-top">
+            <span class="plat-tag">Instagram</span>
+            <span class="an-row-date">${p.date||'без даты'}</span>
+            <button class="del" onclick="deleteAdCampaignPlan('${p.id}')" style="margin-left:auto;">×</button>
+          </div>
+          <div class="metric-grid">
+            <div class="metric-item"><div class="metric-item-label">Бюджет</div><input type="number" value="${p.budget ?? ''}" onchange="updateAdCampaignPlan('${p.id}','budget',this.value,true)"></div>
+            <div class="metric-item"><div class="metric-item-label">План охват</div><input type="number" value="${p.plannedReach ?? ''}" onchange="updateAdCampaignPlan('${p.id}','plannedReach',this.value,true)"></div>
+            <div class="metric-item"><div class="metric-item-label">План клики</div><input type="number" value="${p.plannedClicks ?? ''}" onchange="updateAdCampaignPlan('${p.id}','plannedClicks',this.value,true)"></div>
+            <div class="metric-item"><div class="metric-item-label">План подписки</div><input type="number" value="${p.plannedSubs ?? ''}" onchange="updateAdCampaignPlan('${p.id}','plannedSubs',this.value,true)"></div>
+          </div>
+          <div style="font-size:12.5px;color:var(--ink-soft);margin-top:8px;">Цена клика: <strong>${cpc ?? '—'}</strong> &nbsp;·&nbsp; Цена подписчика: <strong>${cps ?? '—'}</strong></div>
+          ${p.creative? `<div class="ic-description">${escapeHtml(p.creative)}</div>` : ''}
+          <button class="btn-ghost" style="margin-top:10px;" onclick="launchAdCampaign('${p.id}')">Запустили →</button>
+        </div>`;
+      }).join('');
+    }
+  } else {
+    if(adCampaigns.length===0){
+      body = '<div class="empty">Пока нет запущенных кампаний — переведи кампанию из плана.</div>';
+    } else {
+      const sorted = adCampaigns.slice().sort((a,b)=>(b.date||'').localeCompare(a.date||''));
+      body = sorted.map(c=>{
+        const plannedCpc = campaignCostPerClick(c.budget, c.plannedClicks);
+        const plannedCps = campaignCostPerSub(c.budget, c.plannedSubs);
+        const actualCostVal = c.actualCost!=null ? c.actualCost : c.budget;
+        const actualCpc = campaignCostPerClick(actualCostVal, c.actualClicks);
+        const actualCps = campaignCostPerSub(actualCostVal, c.actualSubs);
+        return `<div class="an-row">
+          <div class="an-row-top">
+            <span class="plat-tag">${c.targetPlatform}</span>
+            <span class="an-row-date">${c.date||'без даты'}</span>
+            <button class="del" onclick="deleteAdCampaign('${c.id}')" style="margin-left:auto;">×</button>
+          </div>
+          ${c.creative? `<div class="ic-description">${escapeHtml(c.creative)}</div>` : ''}
+          <div class="compare-grid">
+            <div></div><div class="compare-head">План</div><div class="compare-head">Факт</div>
+            <div class="compare-label">Бюджет</div><div>${c.budget ?? '—'}</div><div><input type="number" value="${c.actualCost ?? ''}" placeholder="${c.budget ?? ''}" onchange="updateAdCampaign('${c.id}','actualCost',this.value,true)"></div>
+            <div class="compare-label">Охват</div><div>${c.plannedReach ?? '—'}</div><div><input type="number" value="${c.actualReach ?? ''}" onchange="updateAdCampaign('${c.id}','actualReach',this.value,true)"></div>
+            <div class="compare-label">Клики</div><div>${c.plannedClicks ?? '—'}</div><div><input type="number" value="${c.actualClicks ?? ''}" onchange="updateAdCampaign('${c.id}','actualClicks',this.value,true)"></div>
+            <div class="compare-label">Подписчики</div><div>${c.plannedSubs ?? '—'}</div><div><input type="number" value="${c.actualSubs ?? ''}" onchange="updateAdCampaign('${c.id}','actualSubs',this.value,true)"></div>
+            <div class="compare-label">Цена клика</div><div>${plannedCpc ?? '—'}</div><div>${actualCpc ?? '—'}</div>
+            <div class="compare-label">Цена подписчика</div><div>${plannedCps ?? '—'}</div><div>${actualCps ?? '—'}</div>
+          </div>
+        </div>`;
+      }).join('');
+    }
+  }
+  return addToggle + addPanel + body;
 }
 
 /* ---------- init ---------- */
@@ -2538,6 +2707,8 @@ async function init(){
   streakState = await loadData('streak-state', { lastCelebratedWeekStart: null });
   promotions = await loadData('promotions', []);
   promoPlans = await loadData('promo-plans', []);
+  adCampaignPlans = await loadData('ad-campaign-plans', []);
+  adCampaigns = await loadData('ad-campaigns', []);
   contentItems.forEach(it=>{ if(it.published) syncPostAnalyticsFor(it); });
 
   renderChecklist();
