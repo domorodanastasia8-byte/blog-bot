@@ -41,49 +41,60 @@ if(window.Telegram && window.Telegram.WebApp){
 </script>
 
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Unbounded:wght@400;600;700;800;900&family=Inter:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
 
 :root{
-  --bg:#FBF1E2;
+  --bg:#FFFFFF;
   --card:#FFFFFF;
-  --ink:#2B1B14;
-  --ink-soft:#7A6455;
-  --line:#F0DCC0;
-  --plum:#E8551F;   --plum-soft:#FDE3D3;
-  --gold:#E8447A;   --gold-soft:#FBDCE8;
-  --teal:#6B3B8A;   --teal-soft:#E9DBF3;
-  --slate:#D9971F;  --slate-soft:#FBEFD3;
-  --muted:#A68F7D;  --muted-soft:#F5EBDD;
+  --ink:#353241;
+  --ink-soft:#5f5f69;
+  --line:#e0e0db;
+  --plum:#592eff;   --plum-soft:#EEEEEE;
+  --gold:#e0189f;   --gold-soft:#FDE8FA;
+  --teal:#0aa5c7;   --teal-soft:#E3F9FF;
+  --slate:#7a9e0a;  --slate-soft:#F0FAD8;
+  --muted:#5f5f69;  --muted-soft:#EEEEEE;
+  --pastel-pink:#ffaae6;
+  --pastel-sky:#bcf2ff;
+  --pastel-lime:#dfff9d;
 }
-*{box-sizing:border-box;}
-html,body{margin:0;padding:0;overflow-x:hidden;background:#FBF1E2;}
-.hub{font-family:'Inter',sans-serif;color:var(--ink);background:var(--bg);padding:0 0 40px;max-width:960px;margin:0 auto;}
-.hub h1,.hub h2,.hub h3{font-family:'Unbounded',sans-serif;font-weight:700;margin:0;}
-.topbar{padding:28px 20px 0;position:relative;overflow:visible;}
-.topbar::before{content:'';position:absolute;top:-30px;right:-40px;width:220px;height:220px;background:radial-gradient(circle, var(--gold-soft) 0%, transparent 72%);z-index:0;pointer-events:none;}
-.topbar::after{content:'';position:absolute;top:10px;left:-30px;width:140px;height:140px;background:radial-gradient(circle, var(--teal-soft) 0%, transparent 72%);z-index:0;pointer-events:none;}
+*{box-sizing:border-box;letter-spacing:-.02em;}
+html,body{margin:0;padding:0;overflow-x:hidden;background:#FFFFFF;}
+.hub{font-family:'Plus Jakarta Sans',sans-serif;color:var(--ink);background:var(--bg);padding:0 0 40px;max-width:960px;margin:0 auto;}
+.hub h1,.hub h2,.hub h3{font-family:'Plus Jakarta Sans',sans-serif;font-weight:700;margin:0;color:#21164c;}
+.topbar{padding:28px 20px 24px;position:relative;overflow:visible;}
+.topbar::before{content:'';position:absolute;top:-40px;right:-40px;width:280px;height:280px;background:var(--pastel-sky);border-radius:50%;filter:blur(18px);opacity:.65;z-index:0;pointer-events:none;}
+.topbar::after{content:'';position:absolute;top:-10px;left:-40px;width:190px;height:190px;background:var(--pastel-lime);border-radius:50%;filter:blur(16px);opacity:.6;z-index:0;pointer-events:none;}
 .topbar > *{position:relative;z-index:1;}
+.topbar-wash{position:absolute !important;top:40px;right:60px;width:190px;height:190px;background:var(--pastel-pink);border-radius:50%;filter:blur(18px);opacity:.55;z-index:0;pointer-events:none;}
 .eyebrow{font-size:12px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--gold);margin-bottom:8px;}
-.topbar h1{font-size:36px;letter-spacing:-.01em;text-transform:uppercase;color:var(--plum);line-height:1.08;}
+.topbar h1{font-size:36px;font-weight:800;letter-spacing:-.02em;color:#21164c;line-height:1.08;}
+.squiggle-word{position:relative;display:inline-block;}
+.squiggle-svg{position:absolute;left:-4px;bottom:-9px;width:calc(100% + 8px);height:12px;}
 .stripe{display:flex;height:8px;margin:20px 0 0;border-radius:5px;overflow:hidden;}
 .stripe span{flex:1;}
 .stripe .s1{background:var(--plum);} .stripe .s2{background:var(--gold);}
 .stripe .s3{background:var(--teal);} .stripe .s4{background:var(--slate);}
 
-.motivation-strip{margin:14px 20px 0;background:var(--card);border:2px solid var(--line);border-radius:16px;padding:12px 16px;}
+.motivation-strip{margin:14px 20px 0;background:var(--card);border:2px solid var(--line);border-radius:26px;padding:12px 16px;position:relative;z-index:2;}
 .streak-label{font-size:12px;font-weight:600;color:var(--ink-soft);margin-bottom:8px;}
 .streak-bar{display:flex;gap:3px;height:12px;border-radius:8px;overflow:hidden;}
 .streak-seg{flex:1;background:var(--muted-soft);}
 .streak-seg.hit{background:var(--gold);}
 .streak-seg.missed{background:#8B2F55;}
 .streak-popup-overlay{position:fixed;inset:0;background:rgba(43,27,20,.45);display:flex;align-items:center;justify-content:center;z-index:10000;padding:20px;}
-.streak-popup-card{background:var(--card);border-radius:20px;padding:28px 24px;max-width:320px;text-align:center;box-shadow:0 12px 40px rgba(0,0,0,.3);}
+.streak-popup-card{background:var(--card);border-radius:20px;padding:28px 24px;max-width:320px;text-align:center;box-shadow:0 8px 24px rgba(53,50,65,.08);}
 .streak-popup-emoji{font-size:36px;margin-bottom:10px;}
-.streak-popup-text{font-family:'Unbounded',sans-serif;font-weight:700;font-size:16px;color:var(--ink);margin-bottom:18px;line-height:1.4;}
-.week-calendar{margin:12px 20px 0;display:flex;gap:8px;overflow-x:auto;padding-bottom:4px;}
-.week-day{background:var(--card);border:2px solid var(--line);border-radius:16px;padding:10px 10px 8px;min-width:122px;flex:1;font-size:11.5px;}
+.streak-popup-text{font-family:'Plus Jakarta Sans',sans-serif;font-weight:700;font-size:16px;color:var(--ink);margin-bottom:18px;line-height:1.4;}
+.wish-popup-overlay{position:fixed;inset:0;background:rgba(43,27,20,.45);display:flex;align-items:center;justify-content:center;z-index:10000;padding:20px;}
+.wish-flower-wrap{position:relative;width:290px;max-width:88vw;aspect-ratio:1/1;filter:drop-shadow(0 10px 24px rgba(0,0,0,.28));}
+.wish-flower-svg{width:100%;height:100%;display:block;}
+.wish-flower-text{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:58%;text-align:center;font-family:'Plus Jakarta Sans',sans-serif;font-weight:600;font-size:14.5px;color:#fff;line-height:1.5;}
+.wish-flower-close{position:absolute;top:2px;right:14px;background:rgba(255,255,255,.85);border:none;border-radius:50%;width:30px;height:30px;font-size:16px;line-height:1;color:var(--ink);cursor:pointer;box-shadow:0 2px 8px rgba(53,50,65,.08);}
+.week-calendar{margin:12px 20px 0;display:flex;gap:8px;overflow-x:auto;padding-bottom:4px;position:relative;z-index:2;}
+.week-day{background:var(--card);border:2px solid var(--line);border-radius:26px;padding:10px 10px 8px;min-width:122px;flex:1;font-size:11.5px;}
 .week-day.today{border-color:var(--plum);box-shadow:0 0 0 1px var(--plum);}
-.week-day-head{font-family:'Inter',sans-serif;font-weight:600;font-size:12px;color:var(--ink);margin-bottom:6px;}
+.week-day-head{font-family:'Plus Jakarta Sans',sans-serif;font-weight:600;font-size:12px;color:var(--ink);margin-bottom:6px;}
 .week-day.today .week-day-head{color:var(--plum);}
 .week-sec{margin-bottom:6px;}
 .week-sec-label{font-size:9.5px;text-transform:uppercase;letter-spacing:.04em;color:var(--muted);margin-bottom:2px;}
@@ -92,8 +103,8 @@ html,body{margin:0;padding:0;overflow-x:hidden;background:#FBF1E2;}
 .week-item-more{font-size:10px;color:var(--muted);}
 .week-empty{font-size:11px;color:var(--muted);}
 
-.tabs{display:flex;gap:8px;padding:18px 20px 10px;overflow-x:auto;}
-.tab-btn{font-family:'Inter',sans-serif;font-size:13px;font-weight:600;color:var(--ink-soft);background:var(--card);border:2px solid var(--line);border-radius:999px;padding:9px 16px;cursor:pointer;white-space:nowrap;transition:all .15s;}
+.tabs{display:flex;gap:6px;padding:10px;margin:6px 20px 18px;overflow-x:auto;background:var(--card);border:1px solid var(--line);border-radius:40px;box-shadow:0 4px 16px rgba(53,50,65,.06);position:relative;z-index:2;}
+.tab-btn{font-family:'Plus Jakarta Sans',sans-serif;font-size:13px;font-weight:500;color:var(--ink-soft);background:none;border:none;border-radius:999px;padding:9px 16px;cursor:pointer;white-space:nowrap;transition:all .15s;}
 @media(max-width:420px){
   .tab-btn{padding:7px 12px;font-size:12px;}
   .topbar h1{font-size:28px;}
@@ -103,13 +114,13 @@ html,body{margin:0;padding:0;overflow-x:hidden;background:#FBF1E2;}
 .tab-btn.active{color:#fff;background:var(--plum);border-color:var(--plum);}
 
 main{padding:24px 20px 0;}
-.tab-panel{display:none;}
+.tab-panel{display:none;position:relative;}
 .tab-panel.active{display:block;}
 
 /* Core tab */
 .core-edit-bar{display:flex;justify-content:flex-end;margin-bottom:10px;}
-#core-content[contenteditable=true]{outline:2px dashed var(--slate);outline-offset:8px;border-radius:16px;}
-.lede{font-family:'Inter',sans-serif;font-style:italic;font-weight:500;font-size:17px;line-height:1.6;color:var(--ink-soft);max-width:640px;margin:0 0 28px;}
+#core-content[contenteditable=true]{outline:2px dashed var(--slate);outline-offset:8px;border-radius:26px;}
+.lede{font-family:'Plus Jakarta Sans',sans-serif;font-style:italic;font-weight:500;font-size:17px;line-height:1.6;color:var(--ink-soft);max-width:640px;margin:0 0 28px;}
 .core-block{margin-bottom:32px;}
 #tab-core{position:relative;overflow:visible;}
 #tab-core::before{content:'';position:absolute;top:-10px;right:-30px;width:260px;height:260px;background:radial-gradient(circle, var(--gold-soft) 0%, transparent 70%);z-index:0;pointer-events:none;}
@@ -122,27 +133,30 @@ main{padding:24px 20px 0;}
 .rubric-card{background:var(--card);border-left:6px solid var(--c);border-radius:0 16px 16px 0;padding:16px 18px;margin-bottom:12px;}
 .rubric-card h3{font-size:17px;margin-bottom:6px;}
 .rubric-card h3::before{content:'';display:inline-block;width:10px;height:10px;border-radius:50%;background:var(--c);margin-right:9px;vertical-align:middle;}
-.rubric-card .core-meaning{font-family:'Inter',sans-serif;font-style:italic;font-weight:500;font-size:14px;color:var(--ink-soft);margin-bottom:8px;}
+.rubric-card .core-meaning{font-family:'Plus Jakarta Sans',sans-serif;font-style:italic;font-weight:500;font-size:14px;color:var(--ink-soft);margin-bottom:8px;}
 .rubric-card ul{margin:0;padding-left:18px;font-size:13.5px;line-height:1.65;color:var(--ink);}
 .tone-grid,.aud-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
-.mini-card{background:var(--card);border:2px solid var(--line);border-radius:16px;padding:14px 16px;}
-.mini-card h4{font-size:14px;font-weight:500;margin:0 0 4px;font-family:'Inter',sans-serif;}
+.mini-card{background:var(--card);border:2px solid var(--line);border-radius:26px;padding:14px 16px;}
+.mini-card h4{font-size:14px;font-weight:500;margin:0 0 4px;font-family:'Plus Jakarta Sans',sans-serif;}
 .mini-card p{font-size:13px;color:var(--ink-soft);margin:0;line-height:1.5;}
 @media(max-width:560px){.tone-grid,.aud-grid{grid-template-columns:1fr;}}
 
 /* Forms / controls */
 .add-row{display:flex;gap:8px;margin-bottom:18px;flex-wrap:wrap;}
 input[type=text],input[type=date],input[type=number],select,textarea{
-  font-family:'Inter',sans-serif;font-size:14px;color:var(--ink);
-  border:1px solid var(--line);border-radius:8px;padding:9px 12px;background:var(--card);
+  font-family:'Plus Jakarta Sans',sans-serif;font-size:14px;color:var(--ink);
+  border:1px solid var(--line);border-radius:12px;padding:9px 12px;background:var(--card);
   min-width:0;max-width:100%;
+}
+input[type=text]:focus,input[type=date]:focus,input[type=number]:focus,select:focus,textarea:focus{
+  outline:none;border-color:var(--plum);border-width:1.5px;
 }
 select{text-overflow:ellipsis;overflow:hidden;white-space:nowrap;}
 .plan-form > *, .an-form > *, .edit-fields > *{min-width:0;}
 textarea{width:100%;resize:vertical;min-height:64px;margin-top:8px;}
-.btn{font-family:'Inter',sans-serif;font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:.03em;background:var(--plum);color:#fff;border:none;border-radius:999px;padding:10px 20px;cursor:pointer;}
+.btn{font-family:'Plus Jakarta Sans',sans-serif;font-size:13.5px;font-weight:500;background:var(--plum);color:#fff;border:none;border-radius:8px;padding:10px 20px;cursor:pointer;}
 .btn:hover{opacity:.88;}
-.btn-ghost{background:none;color:var(--ink);border:2px solid var(--line);border-radius:999px;padding:9px 18px;cursor:pointer;font-family:'Inter',sans-serif;font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:.03em;}
+.btn-ghost{background:none;color:var(--ink);border:1px solid var(--line);border-radius:8px;padding:9px 18px;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;font-size:13.5px;font-weight:500;}
 .del{background:none;border:none;color:var(--muted);cursor:pointer;font-size:14px;line-height:1;padding:2px 6px;}
 .del:hover{color:var(--plum);}
 .empty{color:var(--muted);font-size:14px;padding:30px 0;text-align:center;}
@@ -152,7 +166,7 @@ textarea{width:100%;resize:vertical;min-height:64px;margin-top:8px;}
 .check-item input[type=checkbox]{width:17px;height:17px;accent-color:var(--plum);flex-shrink:0;}
 .check-item .check-text{flex:1;font-size:14px;min-width:160px;cursor:pointer;border-bottom:1px dashed transparent;}
 .check-item .check-text:hover{color:var(--plum);border-bottom-color:var(--plum);}
-.check-text-input{flex:1;font-size:14px;min-width:160px;font-family:'Inter',sans-serif;color:var(--ink);border:2px solid var(--plum);border-radius:8px;padding:4px 8px;background:var(--card);}
+.check-text-input{flex:1;font-size:14px;min-width:160px;font-family:'Plus Jakarta Sans',sans-serif;color:var(--ink);border:2px solid var(--plum);border-radius:8px;padding:4px 8px;background:var(--card);}
 .check-item.done .check-text{color:var(--muted);text-decoration:line-through;}
 .check-item .check-date{font-size:12px;color:var(--muted);white-space:nowrap;}
 .prio{font-size:11px;font-weight:500;padding:2px 8px;border-radius:999px;white-space:nowrap;}
@@ -171,25 +185,25 @@ textarea{width:100%;resize:vertical;min-height:64px;margin-top:8px;}
 #tab-ideas{position:relative;overflow:visible;}
 #tab-ideas::before{content:'';position:absolute;top:-20px;right:-20px;width:200px;height:200px;background:radial-gradient(circle, var(--gold-soft) 0%, transparent 70%);z-index:0;pointer-events:none;}
 #tab-ideas::after{content:'';position:absolute;top:120px;left:-40px;width:180px;height:180px;background:radial-gradient(circle, var(--teal-soft) 0%, transparent 70%);z-index:0;pointer-events:none;}
-.idea-add{background:var(--card);border-radius:16px;padding:18px;border:2px dashed var(--gold);position:relative;z-index:1;}
-.idea-add textarea{font-family:'Inter',sans-serif;font-style:italic;font-weight:500;font-size:15.5px;margin-top:0;}
+.idea-add{background:var(--gold-soft);border-radius:26px;padding:18px;border:2px dashed var(--gold);position:relative;z-index:1;}
+.idea-add textarea{font-family:'Plus Jakarta Sans',sans-serif;font-style:italic;font-weight:500;font-size:15.5px;margin-top:0;}
 .idea-add-row{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;margin-top:8px;}
 .rubric-dot{font-size:11px;padding:4px 9px;border-radius:999px;cursor:pointer;margin-right:6px;margin-bottom:6px;display:inline-block;opacity:.5;transition:opacity .15s;}
 .rubric-dot.active{opacity:1;outline:2px solid rgba(42,32,41,.15);}
 .idea-board{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:18px;margin-top:22px;}
-.idea-card{background:var(--card);border-radius:16px;padding:14px 14px 12px;box-shadow:0 4px 14px rgba(43,27,20,.09);position:relative;}
+.idea-card{background:var(--card);border-radius:26px;padding:14px 14px 12px;box-shadow:0 2px 8px rgba(53,50,65,.06);position:relative;}
 .idea-card:nth-child(4n+1){transform:rotate(-0.6deg);}
 .idea-card:nth-child(4n+2){transform:rotate(0.5deg);}
 .idea-card:nth-child(4n+3){transform:rotate(-0.3deg);}
 .idea-card:nth-child(4n){transform:rotate(0.7deg);}
-.idea-card .idea-text-display{padding:0;min-height:76px;font-family:'Inter',sans-serif;font-style:italic;font-size:14px;line-height:1.55;cursor:pointer;white-space:pre-wrap;border-radius:8px;transition:background .15s;}
+.idea-card .idea-text-display{padding:0;min-height:76px;font-family:'Plus Jakarta Sans',sans-serif;font-style:italic;font-size:14px;line-height:1.55;cursor:pointer;white-space:pre-wrap;border-radius:8px;transition:background .15s;}
 .idea-card .idea-text-display:hover{background:var(--muted-soft);padding:6px;margin:-6px;}
-.idea-text-input{border:2px solid var(--plum);background:var(--card);padding:6px;min-height:76px;font-family:'Inter',sans-serif;font-style:italic;font-size:14px;line-height:1.55;resize:vertical;width:100%;border-radius:8px;}
+.idea-text-input{border:2px solid var(--plum);background:var(--card);padding:6px;min-height:76px;font-family:'Plus Jakarta Sans',sans-serif;font-style:italic;font-size:14px;line-height:1.55;resize:vertical;width:100%;border-radius:8px;}
 .idea-text-input:focus{outline:none;}
 .idea-delete{position:absolute;top:10px;right:12px;background:none;border:none;color:var(--muted);font-size:16px;line-height:1;cursor:pointer;padding:0;}
 .idea-delete:hover{color:var(--plum);}
 .idea-actions{display:flex;gap:8px;margin-top:10px;}
-.idea-btn{flex:1;font-size:12px;font-weight:600;padding:8px 10px;border-radius:999px;cursor:pointer;text-align:center;border:2px solid var(--gold);background:none;color:var(--gold);font-family:'Inter',sans-serif;}
+.idea-btn{flex:1;font-size:12px;font-weight:600;padding:8px 10px;border-radius:999px;cursor:pointer;text-align:center;border:2px solid var(--gold);background:none;color:var(--gold);font-family:'Plus Jakarta Sans',sans-serif;}
 .idea-btn.primary.active{background:var(--gold);color:#fff;}
 .idea-btn.ghost{border-color:var(--line);color:var(--ink-soft);}
 .idea-card.realized{background:var(--gold-soft);}
@@ -197,6 +211,11 @@ textarea{width:100%;resize:vertical;min-height:64px;margin-top:8px;}
 .idea-promote-panel .edit-fields{grid-template-columns:1fr 1fr;}
 
 /* Content plan / work / shoot plan */
+.plan-toolbar{display:flex;gap:8px;margin-bottom:14px;}
+.plan-panel{background:var(--card);border:2px solid var(--line);border-radius:26px;padding:14px;margin-bottom:16px;}
+.btn-ghost.has-active{border-color:var(--plum);color:var(--plum);}
+.btn-ghost.has-active::after{content:'';display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--plum);margin-left:6px;vertical-align:middle;}
+.plan-view-row{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;background:var(--card);border:1.5px solid var(--line);border-radius:26px;padding:10px 14px;margin-bottom:14px;}
 .plan-form{display:grid;grid-template-columns:2fr 1.2fr 1fr auto;gap:8px;margin-bottom:10px;}
 @media(max-width:700px){.plan-form{grid-template-columns:1fr 1fr;}}
 .platform-checks{display:flex;gap:10px;align-items:center;flex-wrap:wrap;font-size:13px;margin-bottom:16px;}
@@ -206,33 +225,43 @@ textarea{width:100%;resize:vertical;min-height:64px;margin-top:8px;}
 .filter-bar input[type=text]{flex:1;min-width:150px;}
 .section-sub{font-size:12px;text-transform:uppercase;letter-spacing:.04em;color:var(--muted);margin:18px 0 8px;}
 .dash-stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:10px;margin-bottom:24px;}
-.dash-stat{background:var(--card);border:2px solid var(--line);border-radius:16px;padding:16px 12px;text-align:center;}
-.dash-stat-value{font-family:'Unbounded',sans-serif;font-size:24px;font-weight:800;color:var(--plum);line-height:1.1;}
+.dash-stat{background:var(--card);border:2px solid var(--line);border-radius:26px;padding:16px 12px;text-align:center;}
+.dash-stat-value{font-family:'Plus Jakarta Sans',sans-serif;font-size:24px;font-weight:800;color:var(--plum);line-height:1.1;}
 .dash-stat-label{font-size:10.5px;color:var(--ink-soft);margin-top:6px;}
 .dash-section{margin-bottom:24px;}
+.painterly-frame{position:relative;padding:20px;border-radius:26px;}
+.painterly-frame::before{content:'';position:absolute;inset:-14px;z-index:-1;border-radius:32px;background:
+  radial-gradient(circle at 15% 20%, var(--pastel-sky) 0%, transparent 45%),
+  radial-gradient(circle at 85% 15%, var(--pastel-pink) 0%, transparent 45%),
+  radial-gradient(circle at 50% 90%, var(--pastel-lime) 0%, transparent 45%);
+  filter:blur(6px);opacity:.75;}
+.painterly-frame > *{position:relative;z-index:1;}
+.painterly-frame .dash-stats{background:var(--card);border-radius:20px;padding:16px;border:1px solid var(--line);}
+.painterly-frame h2{color:#21164c;}
+.painterly-frame h2::before{content:'✦ ';color:var(--gold);}
 .dash-section h2{font-size:15px;margin-bottom:10px;}
 .dash-row{display:flex;gap:10px;flex-wrap:wrap;}
-.dash-card{background:var(--card);border:2px solid var(--line);border-radius:16px;padding:12px 16px;flex:1;min-width:110px;}
+.dash-card{background:var(--card);border:2px solid var(--line);border-radius:26px;padding:12px 16px;flex:1;min-width:110px;}
 .dash-card-name{font-size:11.5px;color:var(--ink-soft);margin-bottom:4px;}
-.dash-card-num{font-family:'Unbounded',sans-serif;font-size:19px;font-weight:700;color:var(--ink);}
+.dash-card-num{font-family:'Plus Jakarta Sans',sans-serif;font-size:19px;font-weight:700;color:var(--ink);}
 .rub-chip{padding:9px 12px;border-radius:12px;font-size:12px;font-weight:600;flex:1;min-width:130px;}
 .insight-item{padding:10px 14px;border-radius:12px;font-size:13px;margin-bottom:6px;background:var(--teal-soft);color:var(--ink);}
 .insight-item.warn{background:var(--plum-soft);}
-.calendar-nav{display:flex;align-items:center;justify-content:space-between;margin:18px 0 10px;}
+.calendar-nav{display:flex;align-items:center;justify-content:center;gap:14px;margin:18px 0 10px;}
 .calendar-nav button{background:var(--card);border:2px solid var(--line);border-radius:999px;width:34px;height:34px;cursor:pointer;font-size:16px;color:var(--ink);flex-shrink:0;}
 .period-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;}
-.period-header-label{font-family:'Unbounded',sans-serif;font-weight:700;font-size:15px;color:var(--ink);cursor:pointer;}
+.period-header-label{font-family:'Plus Jakarta Sans',sans-serif;font-weight:700;font-size:15px;color:var(--ink);cursor:pointer;}
 .period-icon-btn{background:var(--card);border:2px solid var(--line);border-radius:999px;width:34px;height:34px;cursor:pointer;font-size:15px;flex-shrink:0;}
 .period-icon-btn:hover{border-color:var(--plum);}
-.range-popover{background:var(--card);border:2px solid var(--line);border-radius:16px;padding:14px;margin-bottom:20px;}
+.range-popover{background:var(--card);border:2px solid var(--line);border-radius:26px;padding:14px;margin-bottom:20px;}
 .range-presets{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:14px;}
 .preset-btn{font-size:11.5px;font-weight:600;padding:6px 11px;border-radius:999px;border:2px solid var(--line);background:var(--bg);color:var(--ink-soft);cursor:pointer;}
 .preset-btn:hover{border-color:var(--plum);color:var(--ink);}
-.range-cal-nav{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;font-family:'Unbounded',sans-serif;font-weight:700;font-size:13px;color:var(--ink);}
+.range-cal-nav{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;font-family:'Plus Jakarta Sans',sans-serif;font-weight:700;font-size:13px;color:var(--ink);}
 .range-cal-nav button{background:none;border:none;font-size:17px;cursor:pointer;color:var(--ink-soft);padding:2px 10px;}
 .range-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:2px;margin-bottom:14px;}
 .range-weekday{font-size:9.5px;text-transform:uppercase;color:var(--muted);text-align:center;padding:2px 0;font-weight:600;}
-.range-day{background:none;border:none;border-radius:8px;padding:7px 0;font-size:12.5px;color:var(--ink);cursor:pointer;font-family:'Inter',sans-serif;}
+.range-day{background:none;border:none;border-radius:8px;padding:7px 0;font-size:12.5px;color:var(--ink);cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;}
 .range-day.outside{color:var(--muted);opacity:.35;}
 .range-day.today{font-weight:700;text-decoration:underline;text-underline-offset:3px;}
 .range-day.range-mid{background:var(--plum-soft);border-radius:0;}
@@ -241,23 +270,30 @@ textarea{width:100%;resize:vertical;min-height:64px;margin-top:8px;}
 .range-footer span{color:var(--muted);}
 .range-actions{display:flex;justify-content:flex-end;gap:8px;}
 .calendar-nav button:hover{border-color:var(--plum);}
-.cal-title{font-family:'Unbounded',sans-serif;font-weight:700;font-size:15px;color:var(--ink);text-transform:capitalize;}
-.agenda-day-label{font-family:'Unbounded',sans-serif;font-weight:700;font-size:13px;color:var(--plum);margin:18px 0 8px;text-transform:capitalize;}
-.item-card{background:var(--card);border:2px solid var(--line);border-radius:16px;padding:14px 16px;margin-bottom:10px;}
+.cal-title{font-family:'Plus Jakarta Sans',sans-serif;font-weight:700;font-size:15px;color:var(--ink);text-transform:capitalize;}
+.agenda-day-label{font-family:'Plus Jakarta Sans',sans-serif;font-weight:700;font-size:13px;color:var(--plum);margin:18px 0 8px;text-transform:capitalize;}
+.plan-table{display:grid;grid-template-columns:40px repeat(3,1fr);gap:3px;margin-top:10px;}
+.plan-table-head{background:var(--ink);color:#fff;font-size:9.5px;font-weight:700;text-align:center;padding:6px 2px;border-radius:6px;}
+.plan-table-day{background:var(--muted-soft);color:var(--ink-soft);font-size:10px;font-weight:700;text-align:center;padding:5px 2px;border-radius:6px;line-height:1.35;}
+.plan-table-day.today{background:var(--plum);color:#fff;}
+.plan-table-cell{background:var(--card);border:1px solid var(--line);border-radius:6px;padding:3px;min-height:28px;}
+.plan-table-item{font-size:9.5px;padding:3px 5px;border-radius:6px;margin-bottom:3px;line-height:1.25;word-break:break-word;}
+.plan-table-item:last-child{margin-bottom:0;}
+.item-card{background:var(--card);border:2px solid var(--line);border-radius:26px;padding:14px 16px;margin-bottom:10px;}
 .ic-top{display:flex;align-items:center;gap:6px;margin-bottom:6px;}
 .ic-rubric-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
 .ic-rubric-label{font-size:11px;font-weight:600;letter-spacing:.02em;flex:1;min-width:0;}
 .ic-topic-wrap{margin-bottom:5px;}
-.ic-topic{font-family:'Unbounded',sans-serif;font-size:15.5px;font-weight:600;color:var(--ink);line-height:1.35;cursor:pointer;border-bottom:1px dashed transparent;}
+.ic-topic{font-family:'Plus Jakarta Sans',sans-serif;font-size:15.5px;font-weight:600;color:var(--ink);line-height:1.35;cursor:pointer;border-bottom:1px dashed transparent;}
 .ic-topic:hover{color:var(--plum);border-bottom-color:var(--plum);}
-.ic-topic-input{font-family:'Unbounded',sans-serif;font-size:15.5px;font-weight:600;color:var(--ink);line-height:1.35;width:100%;border:2px solid var(--plum);border-radius:8px;padding:4px 8px;background:var(--card);}
+.ic-topic-input{font-family:'Plus Jakarta Sans',sans-serif;font-size:15.5px;font-weight:600;color:var(--ink);line-height:1.35;width:100%;border:2px solid var(--plum);border-radius:8px;padding:4px 8px;background:var(--card);}
 .ic-meta{font-size:12px;color:var(--muted);margin-bottom:10px;}
-.plat-tag{font-size:10.5px;padding:2px 7px;border-radius:999px;background:var(--muted-soft);color:var(--ink-soft);margin-right:3px;}
+.plat-tag{font-size:10.5px;padding:2px 8px;border-radius:999px;background:none;border:1px solid var(--ink-soft);color:var(--ink-soft);margin-right:3px;}
 .ic-actions{display:flex;gap:16px;}
-.ic-actions button{background:none;border:none;padding:0;font-size:12px;color:var(--muted);cursor:pointer;font-family:'Inter',sans-serif;}
+.ic-actions button{background:none;border:none;padding:0;font-size:12px;color:var(--muted);cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;}
 .ic-actions button.edit{color:var(--slate);font-weight:600;}
 .stage-stepper{display:flex;align-items:center;flex-shrink:0;}
-.stage-dot{width:22px;height:22px;border-radius:50%;border:2px solid var(--line);background:var(--card);font-size:10px;font-weight:700;color:var(--muted);cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0;flex-shrink:0;font-family:'Inter',sans-serif;}
+.stage-dot{width:22px;height:22px;border-radius:50%;border:2px solid var(--line);background:var(--card);font-size:10px;font-weight:700;color:var(--muted);cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0;flex-shrink:0;font-family:'Plus Jakarta Sans',sans-serif;}
 .stage-dot.done{background:var(--teal);border-color:var(--teal);color:#fff;}
 .stage-line{width:9px;height:2px;background:var(--line);flex-shrink:0;}
 .stage-line.done{background:var(--teal);}
@@ -285,19 +321,24 @@ textarea{width:100%;resize:vertical;min-height:64px;margin-top:8px;}
 /* Analytics */
 .an-form{display:grid;grid-template-columns:1fr 1fr 1fr 1fr 1.4fr auto;gap:8px;margin-bottom:20px;}
 .chip-row{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px;}
-.chip-btn{font-family:'Inter',sans-serif;font-size:12.5px;font-weight:600;padding:7px 14px;border-radius:999px;border:2px solid var(--line);background:var(--card);color:var(--ink-soft);cursor:pointer;}
+.chip-btn{font-family:'Plus Jakarta Sans',sans-serif;font-size:12.5px;font-weight:600;padding:7px 14px;border-radius:999px;border:1.5px solid var(--line);background:var(--card);color:var(--ink-soft);cursor:pointer;}
 .chip-btn.active{background:var(--plum);border-color:var(--plum);color:#fff;}
-.chart-wrap{background:var(--card);border:2px solid var(--line);border-radius:16px;padding:14px 12px 10px;margin-bottom:18px;}
+.chart-wrap{background:var(--card);border:2px solid var(--line);border-radius:26px;padding:14px 12px 10px;margin-bottom:18px;}
 .chart-bars{display:flex;align-items:flex-end;gap:10px;height:140px;overflow-x:auto;padding-bottom:2px;}
 .chart-bar-col{display:flex;flex-direction:column;align-items:center;justify-content:flex-end;min-width:30px;height:100%;flex-shrink:0;}
 .chart-bar-value{font-size:10px;font-weight:600;color:var(--ink-soft);margin-bottom:3px;white-space:nowrap;}
 .chart-bar{width:20px;border-radius:6px 6px 2px 2px;min-height:3px;background:var(--plum);}
 .chart-bar-label{font-size:9px;color:var(--muted);margin-top:5px;white-space:nowrap;}
-.an-row{background:var(--card);border:2px solid var(--line);border-radius:16px;padding:12px 14px;margin-bottom:8px;}
+.an-row{background:var(--card);border:2px solid var(--line);border-radius:26px;padding:12px 14px;margin-bottom:8px;}
 .an-row-top{display:flex;align-items:center;gap:8px;}
 .an-row-date{font-size:12.5px;color:var(--ink-soft);}
 .an-row-nums{font-size:13px;margin-top:6px;}
 .an-row-note{font-size:12.5px;color:var(--muted);margin-top:4px;}
+.metric-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(80px,1fr));gap:8px;margin-top:8px;}
+.metric-item{background:var(--muted-soft);border-radius:10px;padding:8px 10px;}
+.metric-item-label{font-size:9px;text-transform:uppercase;letter-spacing:.03em;color:var(--muted);margin-bottom:4px;}
+.metric-item input{width:100%;border:none;background:none;padding:0;font-size:14px;font-weight:600;color:var(--ink);font-family:'Plus Jakarta Sans',sans-serif;}
+.metric-item input:focus{outline:none;}
 .pa-nums{display:flex;gap:12px;flex-wrap:wrap;margin-top:8px;}
 .pa-nums label{display:flex;align-items:center;gap:5px;font-size:12.5px;color:var(--ink-soft);}
 .pa-nums input[type=number]{width:74px;padding:5px 8px;font-size:12.5px;}
@@ -310,12 +351,14 @@ textarea{width:100%;resize:vertical;min-height:64px;margin-top:8px;}
 
 <div class="hub">
   <div class="topbar">
+    <div class="topbar-wash"></div>
     <svg class="deco-star" viewBox="0 0 24 24" width="26" height="26" fill="none" xmlns="http://www.w3.org/2000/svg" style="position:absolute;top:26px;right:24px;z-index:1;">
       <path d="M12 2 L14 9 L21 9 L15.5 13.5 L17.5 21 L12 16.5 L6.5 21 L8.5 13.5 L3 9 L10 9 Z" fill="var(--gold)"/>
     </svg>
     <div class="eyebrow">Твой личный помощник</div>
-    <h1>Дневник блогера</h1>
-    <div class="stripe"><span class="s1"></span><span class="s2"></span><span class="s3"></span><span class="s4"></span></div>
+    <h1>Дневник <span class="squiggle-word">блогера
+      <svg class="squiggle-svg" viewBox="0 0 140 16" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg"><path d="M2 9 C 14 2, 26 15, 38 8 S 62 2, 74 9 S 98 15, 110 8 S 134 2, 138 9" stroke="var(--pastel-pink)" stroke-width="6" fill="none" stroke-linecap="round"/></svg>
+    </span></h1>
   </div>
 
   <div class="motivation-strip" id="motivation-strip"></div>
@@ -437,6 +480,7 @@ textarea{width:100%;resize:vertical;min-height:64px;margin-top:8px;}
           <option value="overdue">Просроченные</option>
           <option value="nodate">Без даты</option>
         </select>
+        <button class="btn-ghost" id="checklist-archive-toggle-btn" onclick="toggleChecklistArchive()">Архив</button>
       </div>
       <div id="checklist-list"></div>
     </section>
@@ -450,7 +494,10 @@ textarea{width:100%;resize:vertical;min-height:64px;margin-top:8px;}
         <textarea id="idea-input" placeholder="Идея для поста или ролика... просто пиши, оформим потом" rows="3"></textarea>
         <div class="idea-add-row">
           <div id="idea-rubric-picker"></div>
-          <button class="btn" onclick="addIdea()">Закинуть идею</button>
+          <div style="display:flex;gap:8px;align-items:center;">
+            <button class="btn" onclick="addIdea()">Закинуть идею</button>
+            <button class="btn-ghost" id="idea-archive-toggle-btn" onclick="toggleIdeaArchive()">Архив</button>
+          </div>
         </div>
       </div>
       <div class="idea-board" id="idea-board"></div>
@@ -458,17 +505,24 @@ textarea{width:100%;resize:vertical;min-height:64px;margin-top:8px;}
 
     <!-- CONTENT PLAN -->
     <section class="tab-panel" id="tab-plan">
-      <div class="plan-form">
-        <input type="text" id="plan-topic" placeholder="Тема поста">
-        <select id="plan-rubric"></select>
-        <input type="date" id="plan-date">
-        <button class="btn" onclick="addContentItem()">+</button>
+      <div class="plan-toolbar">
+        <button class="btn-ghost" id="plan-add-toggle-btn" onclick="toggleAddForm()">+ Новая тема</button>
+        <button class="btn-ghost" id="plan-filter-toggle-btn" onclick="togglePlanFilters()">Фильтры</button>
+        <button class="btn-ghost" id="plan-archive-toggle-btn" onclick="togglePlanArchive()">Архив</button>
       </div>
-      <div class="platform-checks">
-        <span style="font-size:12.5px;color:var(--muted);">Площадки:</span>
-        <label><input type="checkbox" id="plan-plat-tg" checked> Telegram</label>
-        <label><input type="checkbox" id="plan-plat-ig"> Instagram</label>
-        <label><input type="checkbox" id="plan-plat-yt"> YouTube</label>
+      <div class="plan-panel" id="plan-add-panel" style="display:none;">
+        <div class="plan-form">
+          <input type="text" id="plan-topic" placeholder="Тема поста">
+          <select id="plan-rubric"></select>
+          <input type="date" id="plan-date">
+          <button class="btn" onclick="addContentItem()">+</button>
+        </div>
+        <div class="platform-checks" style="margin-bottom:0;">
+          <span style="font-size:12.5px;color:var(--muted);">Площадки:</span>
+          <label><input type="checkbox" id="plan-plat-tg" checked> Telegram</label>
+          <label><input type="checkbox" id="plan-plat-ig"> Instagram</label>
+          <label><input type="checkbox" id="plan-plat-yt"> YouTube</label>
+        </div>
       </div>
       <div id="plan-list"></div>
     </section>
@@ -491,19 +545,8 @@ textarea{width:100%;resize:vertical;min-height:64px;margin-top:8px;}
 
     <!-- PROMOTION -->
     <section class="tab-panel" id="tab-promo">
-      <p style="font-size:13px;color:var(--ink-soft);margin:0 0 12px;">Учёт платного продвижения — реклама у блогеров, в каналах, рекламные кабинеты. Цена подписчика считается сама.</p>
-      <div class="chip-row" style="margin-bottom:14px;" id="promo-filter-row"></div>
-      <div class="an-form">
-        <input type="text" id="promo-source" placeholder="Блогер / канал / кабинет">
-        <select id="promo-platform"></select>
-        <input type="date" id="promo-date">
-        <input type="number" id="promo-cost" placeholder="Стоимость">
-        <input type="number" id="promo-reach" placeholder="Охват">
-        <input type="number" id="promo-subs" placeholder="Подписчики">
-        <button class="btn" onclick="addPromotion()">+</button>
-      </div>
-      <div id="promo-summary"></div>
-      <div id="promo-list"></div>
+      <p style="font-size:13px;color:var(--ink-soft);margin:0 0 12px;">План — каналы на примете, до денег. Факт — что уже реально оплачено и запущено. Цена подписчика/клика считается сама.</p>
+      <div id="promo-content"></div>
     </section>
 
     <!-- ANALYTICS -->
@@ -624,7 +667,6 @@ function fillSelects(){
   document.getElementById('plan-rubric').innerHTML = '<option value="">Без рубрики</option>' + RUBRICS.map(r=>`<option value="${r.key}">${r.label}</option>`).join('');
   document.getElementById('an-platform').innerHTML = PLATFORMS.map(p=>`<option value="${p}">${p}</option>`).join('');
   document.getElementById('pa-platform').innerHTML = PLATFORMS.map(p=>`<option value="${p}">${p}</option>`).join('');
-  document.getElementById('promo-platform').innerHTML = PLATFORMS.map(p=>`<option value="${p}">${p}</option>`).join('');
 }
 function rubricDisplay(key){
   if(!key) return {label:'Без рубрики', bg:'var(--muted-soft)', fg:'var(--muted)'};
@@ -657,39 +699,47 @@ const STREAK_MESSAGES = [
   'Ещё неделя — и это уже привычка 🌱',
   'Снова доказала себе, что можешь'
 ];
-let streakState = { lastCelebratedCycle: -1 };
+let streakState = { lastCelebratedWeekStart: null };
 let pendingCelebration = null;
 function computeStreakThermometer(){
-  const publishedDays = new Set();
+  const publishedByDay = {};
   contentItems.forEach(it=>{
     if(!it.noPost && it.published){
       const d = it.publishedAt || it.date;
-      if(d) publishedDays.add(d);
+      if(d) publishedByDay[d] = (publishedByDay[d]||0) + 1;
     }
   });
-  if(publishedDays.size===0) return null;
-  const sortedDays = Array.from(publishedDays).sort();
-  const firstDay = sortedDays[0];
+  const publishedDates = Object.keys(publishedByDay).sort();
+  if(publishedDates.length===0) return null;
+
   const todayStr = toDateStr(new Date());
-  const daysSinceStart = Math.floor((new Date(todayStr+'T00:00:00') - new Date(firstDay+'T00:00:00'))/86400000);
-  const cycleIndex = Math.floor(daysSinceStart/7);
-  const dayInCycle = daysSinceStart%7;
-  const cycleStartDate = new Date(firstDay+'T00:00:00');
-  cycleStartDate.setDate(cycleStartDate.getDate()+cycleIndex*7);
+  const todayDate = new Date(todayStr+'T00:00:00');
+  const offset = (todayDate.getDay()+6)%7;
+  const weekStart = new Date(todayDate); weekStart.setDate(weekStart.getDate()-offset);
+  const weekStartStr = toDateStr(weekStart);
 
   const segs = [];
   let hits = 0;
   for(let i=0;i<7;i++){
-    const d = new Date(cycleStartDate); d.setDate(d.getDate()+i);
+    const d = new Date(weekStart); d.setDate(d.getDate()+i);
     const dStr = toDateStr(d);
+    const count = publishedByDay[dStr] || 0;
     if(dStr > todayStr){ segs.push('future'); }
-    else if(publishedDays.has(dStr)){ segs.push('hit'); hits++; }
+    else if(count>0){ segs.push('hit'); hits += count; }
     else { segs.push('missed'); }
   }
+  const dayInCycle = offset;
 
-  if(cycleIndex>=1 && (cycleIndex-1) > streakState.lastCelebratedCycle){
-    pendingCelebration = STREAK_MESSAGES[(cycleIndex-1) % STREAK_MESSAGES.length];
-    streakState.lastCelebratedCycle = cycleIndex-1;
+  const firstDay = publishedDates[0];
+  const firstWeekStart = new Date(firstDay+'T00:00:00');
+  const firstOffset = (firstWeekStart.getDay()+6)%7;
+  firstWeekStart.setDate(firstWeekStart.getDate()-firstOffset);
+  const firstWeekStartStr = toDateStr(firstWeekStart);
+
+  if(weekStartStr > firstWeekStartStr && weekStartStr !== streakState.lastCelebratedWeekStart){
+    const weeksSince = Math.round((weekStart - firstWeekStart) / (7*86400000));
+    pendingCelebration = STREAK_MESSAGES[(weeksSince-1) % STREAK_MESSAGES.length];
+    streakState.lastCelebratedWeekStart = weekStartStr;
     saveData('streak-state', streakState);
   }
   return { segs, hits, dayInCycle };
@@ -704,6 +754,74 @@ function showStreakPopup(message){
   </div>`;
   document.body.appendChild(overlay);
   fireConfetti();
+}
+const DAILY_WISHES = [
+  'Пусть сегодня слова придут сами, а тревога — нет',
+  'Сегодня отличный день, чтобы быть чуть смелее вчерашней себя',
+  'Пусть один маленький шаг сегодня окажется большим',
+  'Разреши себе сегодня не идеальный, а просто честный день',
+  'Пусть сегодня получится то, что давно откладывала',
+  'Сегодня хороший день, чтобы гордиться собой без повода',
+  'Пусть тревожные мысли сегодня немного помолчат',
+  'Разреши себе сегодня медленный темп — он тоже двигает вперёд',
+  'Пусть сегодняшний день принесёт что-то, что искренне порадует',
+  'Сегодня можно позволить себе быть собой, без объяснений',
+  'Пусть сегодня найдётся минута тишины — просто для себя',
+  'Пусть то, что кажется маленьким шагом, окажется важным',
+  'Сегодня хороший день, чтобы простить себе вчерашнюю усталость',
+  'Пусть внутренний голос сегодня будет добрее к тебе',
+  'Разреши себе сегодня не спешить туда, куда не хочется',
+  'Пусть сегодня получится сказать то, что давно хотела',
+  'Сегодня хороший день для маленькой дерзости',
+  'Пусть усталость сегодня сменится на что-то тёплое',
+  'Разреши себе сегодня радоваться без причины',
+  'Пусть сегодня всё получится немного легче, чем ты ждёшь',
+  'Сегодня хороший день, чтобы довериться своему темпу',
+  'Пусть то, что пугает, сегодня окажется не таким страшным',
+  'Разреши себе сегодня закончить пораньше, если получится',
+  'Пусть сегодняшние слова найдут своего человека',
+  'Сегодня хороший день, чтобы заметить, как далеко уже дошла',
+  'Пусть сегодня будет минимум сомнений и максимум тепла',
+  'Разреши себе сегодня не сравнивать себя ни с кем',
+  'Пусть сегодня получится сделать что-то только для радости',
+  'Сегодня хороший день, чтобы быть честной с собой',
+  'Пусть вечером сегодня будет за что себя похвалить'
+];
+function getDailyWish(){
+  const now = new Date();
+  const start = new Date(now.getFullYear(), 0, 0);
+  const dayOfYear = Math.floor((now - start) / 86400000);
+  return DAILY_WISHES[dayOfYear % DAILY_WISHES.length];
+}
+function showWishPopup(message){
+  const overlay = document.createElement('div');
+  overlay.className = 'wish-popup-overlay';
+  overlay.innerHTML = `<div class="wish-flower-wrap">
+    <svg class="wish-flower-svg" viewBox="0 0 300 300" xmlns="http://www.w3.org/2000/svg">
+      <g fill="var(--gold)">
+        <ellipse cx="0" cy="0" rx="88" ry="58" transform="translate(150,150) rotate(0) translate(58,0)"/>
+        <ellipse cx="0" cy="0" rx="88" ry="58" transform="translate(150,150) rotate(60) translate(58,0)"/>
+        <ellipse cx="0" cy="0" rx="88" ry="58" transform="translate(150,150) rotate(120) translate(58,0)"/>
+        <ellipse cx="0" cy="0" rx="88" ry="58" transform="translate(150,150) rotate(180) translate(58,0)"/>
+        <ellipse cx="0" cy="0" rx="88" ry="58" transform="translate(150,150) rotate(240) translate(58,0)"/>
+        <ellipse cx="0" cy="0" rx="88" ry="58" transform="translate(150,150) rotate(300) translate(58,0)"/>
+      </g>
+    </svg>
+    <div class="wish-flower-text">${escapeHtml(message)}</div>
+    <button class="wish-flower-close" onclick="this.closest('.wish-popup-overlay').remove()">×</button>
+  </div>`;
+  document.body.appendChild(overlay);
+}
+async function maybeShowDailyWish(){
+  const todayStr = toDateStr(new Date());
+  let lastShown = null;
+  try{
+    const res = await window.storage.get('last-wish-date');
+    lastShown = res ? res.value : null;
+  } catch(e){ lastShown = null; }
+  if(lastShown === todayStr) return;
+  try{ await window.storage.set('last-wish-date', todayStr); } catch(e){}
+  showWishPopup(getDailyWish());
 }
 function renderMotivation(){
   const el = document.getElementById('motivation-strip');
@@ -966,11 +1084,10 @@ function renderDashboard(){
     </div>
     ${popoverHtml}
 
-    <div class="dash-section">
+    <div class="dash-section painterly-frame">
       <h2>Общая сводка</h2>
       <div class="dash-stats">
         <div class="dash-stat"><div class="dash-stat-value">${periodPublished.length}</div><div class="dash-stat-label">Опубликовано постов</div></div>
-        <div class="dash-stat"><div class="dash-stat-value">${dailyStreak}</div><div class="dash-stat-label">Дней подряд</div></div>
         <div class="dash-stat"><div class="dash-stat-value">${periodDoneTasks.length}</div><div class="dash-stat-label">Задач закрыто</div></div>
         <div class="dash-stat"><div class="dash-stat-value">${periodRealizedIdeas.length}</div><div class="dash-stat-label">Идей реализовано</div></div>
       </div>
@@ -1048,11 +1165,9 @@ function renderDashboard(){
 /* ---------- week calendar ---------- */
 function getWeekDates(){
   const today = new Date();
-  const day = (today.getDay()+6)%7;
-  const monday = new Date(today); monday.setDate(today.getDate()-day);
   const dates = [];
   for(let i=0;i<7;i++){
-    const d = new Date(monday); d.setDate(monday.getDate()+i);
+    const d = new Date(today); d.setDate(today.getDate()+i);
     dates.push(toDateStr(d));
   }
   return dates;
@@ -1068,7 +1183,7 @@ function renderWeekCalendar(){
   if(!container) return;
   const todayStr = toDateStr(new Date());
   const dates = getWeekDates();
-  const dayNames = ['Пн','Вт','Ср','Чт','Пт','Сб','Вс'];
+  const dayNames = ['Вс','Пн','Вт','Ср','Чт','Пт','Сб'];
   container.innerHTML = dates.map((dateStr, idx)=>{
     const d = new Date(dateStr+'T00:00:00');
     const isToday = dateStr===todayStr;
@@ -1082,7 +1197,7 @@ function renderWeekCalendar(){
     const empty = (!secTasks && !secShoot && !secPub) ? '<div class="week-empty">—</div>' : '';
 
     return `<div class="week-day ${isToday?'today':''}">
-      <div class="week-day-head">${dayNames[idx]}, ${d.getDate()}.${String(d.getMonth()+1).padStart(2,'0')}</div>
+      <div class="week-day-head">${dayNames[d.getDay()]}, ${d.getDate()}.${String(d.getMonth()+1).padStart(2,'0')}</div>
       ${secTasks}${secShoot}${secPub}${empty}
     </div>`;
   }).join('');
@@ -1111,12 +1226,43 @@ function passesChecklistFilter(it){
   if(checklistFilter==='nodate') return !it.date;
   return true;
 }
+function startOfWeekStr(){
+  const d = new Date();
+  const offset = (d.getDay()+6)%7;
+  d.setDate(d.getDate()-offset);
+  return toDateStr(d);
+}
+let checklistShowArchive = false;
+function toggleChecklistArchive(){ checklistShowArchive = !checklistShowArchive; renderChecklist(); }
+function isChecklistArchived(it){
+  return !!it.done && (!it.completedAt || it.completedAt < startOfWeekStr());
+}
 function renderChecklist(){
   renderWeekCalendar();
   renderDashboard();
   const list = document.getElementById('checklist-list');
   if(!list) return;
-  const visible = checklistItems.filter(passesChecklistFilter);
+  const archiveBtn = document.getElementById('checklist-archive-toggle-btn');
+  if(archiveBtn) archiveBtn.classList.toggle('has-active', checklistShowArchive);
+
+  if(checklistShowArchive){
+    const archived = checklistItems.filter(isChecklistArchived)
+      .sort((a,b)=>(b.completedAt||'').localeCompare(a.completedAt||''));
+    if(archived.length===0){
+      list.innerHTML = '<div class="empty">Архив пуст — выполненные задачи попадают сюда каждый понедельник.</div>';
+      return;
+    }
+    list.innerHTML = archived.map(it=>`<div class="check-item done">
+      <span class="star"></span>
+      <input type="checkbox" checked onchange="toggleChecklist('${it.id}')">
+      <span class="check-text">${escapeHtml(it.text)}</span>
+      ${it.completedAt? `<span class="check-date">${it.completedAt}</span>` : ''}
+      <button class="del" onclick="deleteChecklist('${it.id}')">×</button>
+    </div>`).join('');
+    return;
+  }
+
+  const visible = checklistItems.filter(it=>!isChecklistArchived(it)).filter(passesChecklistFilter);
   if(visible.length===0){
     list.innerHTML = '<div class="empty">Ничего не найдено под этот фильтр.</div>';
     return;
@@ -1285,21 +1431,30 @@ function confirmPromote(id){
   if(document.getElementById('promote-ig-'+id).checked) platforms.push('Instagram');
   if(document.getElementById('promote-yt-'+id).checked) platforms.push('YouTube');
   const shootDate = date ? subtractDays(date,2) : '';
-  contentItems.push({id:uid(), topic:idea.text, rubric, platforms, date, shootDate, script:'', caption:'', format:suggestFormat(platforms), shootList:[], filmed:false, edited:false, published:false});
+  contentItems.push({id:uid(), topic:idea.text, rubric, platforms, date, shootDate, script:'', caption:'', format:suggestFormat(platforms), shootList:[], scriptWritten:false, filmed:false, edited:false, published:false});
   ideas = ideas.filter(i=>i.id!==id);
   ideaPromoting.delete(id);
   saveData('ideas', ideas);
   saveData('content-items', contentItems);
   renderIdeas(); renderPlan(); renderShootPlan(); renderMotivation();
 }
+let ideaShowArchive = false;
+function toggleIdeaArchive(){ ideaShowArchive = !ideaShowArchive; renderIdeas(); }
 function renderIdeas(){
   renderDashboard();
   const board = document.getElementById('idea-board');
-  if(ideas.length===0){
-    board.innerHTML = '<div class="empty">Пока пусто — закинь первую идею выше, оформлять пока не нужно.</div>';
+  const archiveBtn = document.getElementById('idea-archive-toggle-btn');
+  if(archiveBtn) archiveBtn.classList.toggle('has-active', ideaShowArchive);
+
+  const visible = ideas.filter(idea => ideaShowArchive ? idea.realized : !idea.realized);
+
+  if(visible.length===0){
+    board.innerHTML = ideaShowArchive
+      ? '<div class="empty">Пока ничего не реализовано.</div>'
+      : '<div class="empty">Пока пусто — закинь первую идею выше, оформлять пока не нужно.</div>';
     return;
   }
-  board.innerHTML = ideas.slice().reverse().map(idea=>{
+  board.innerHTML = visible.slice().reverse().map(idea=>{
     const isPromoting = ideaPromoting.has(idea.id);
     let promotePanel = '';
     if(isPromoting){
@@ -1344,7 +1499,7 @@ function toggleIdeaRealized(id){
   renderIdeas();
 }
 function fireConfetti(){
-  const colors = ['#E8551F','#E8447A','#6B3B8A','#D9971F','#FFFFFF'];
+  const colors = ['#592eff','#e0189f','#0aa5c7','#7a9e0a','#FFFFFF'];
   const container = document.createElement('div');
   container.style.cssText = 'position:fixed;left:0;top:0;width:100%;height:100%;pointer-events:none;z-index:9999;overflow:hidden;';
   document.body.appendChild(container);
@@ -1410,10 +1565,13 @@ function renderItemCard(it){
       </div>
       <div class="shoot-date-row"><label>Дата съёмки: <input type="date" value="${it.shootDate||''}" onchange="updateItemField('${it.id}','shootDate',this.value)"></label></div>`;
   }
+  const ICON_PENCIL = '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>';
   const ICON_CAMERA = '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8a2 2 0 0 1 2-2h2l1.5-2h7L17 6h2a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8z"/><circle cx="12" cy="13" r="3.5"/></svg>';
   const ICON_SCISSORS = '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="6" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><line x1="20" y1="4" x2="8.12" y2="15.88"/><line x1="14.47" y1="14.48" x2="20" y2="20"/><line x1="8.12" y1="8.12" x2="12" y2="12"/></svg>';
   const ICON_SEND = '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>';
   const stepper = `<div class="stage-stepper">
+      <button class="stage-dot ${it.scriptWritten?'done':''}" onclick="updateStage('${it.id}','scriptWritten',${!it.scriptWritten})" title="Сценарий написан">${ICON_PENCIL}</button>
+      <span class="stage-line ${it.scriptWritten?'done':''}"></span>
       <button class="stage-dot ${it.filmed?'done':''}" onclick="updateStage('${it.id}','filmed',${!it.filmed})" title="Отснято">${ICON_CAMERA}</button>
       <span class="stage-line ${it.filmed?'done':''}"></span>
       <button class="stage-dot ${it.edited?'done':''}" onclick="updateStage('${it.id}','edited',${!it.edited})" title="Смонтировано">${ICON_SCISSORS}</button>
@@ -1444,11 +1602,88 @@ function togglePlanItem(id){
 
 /* ---------- month calendar ---------- */
 let calendarDate = new Date();
+let tableCalendarDate = new Date();
+let tableViewPeriod = 'week';
+let planViewMode = 'list';
+let planFiltersOpen = false;
+let planAddOpen = false;
+let planShowArchive = false;
+function setPlanViewMode(m){ planViewMode = m; renderPlan(); }
+function toggleAddForm(){
+  planAddOpen = !planAddOpen;
+  document.getElementById('plan-add-panel').style.display = planAddOpen ? 'block' : 'none';
+  document.getElementById('plan-add-toggle-btn').textContent = planAddOpen ? '× Свернуть' : '+ Новая тема';
+}
+function togglePlanFilters(){ planFiltersOpen = !planFiltersOpen; renderPlan(); }
+function resetPlanFilters(){ filterState = {rubric:'', platform:'', stage:''}; renderPlan(); }
+function togglePlanArchive(){ planShowArchive = !planShowArchive; renderPlan(); }
 const MONTH_NAMES = ['Январь','Февраль','Март','Апрель','Май','Июнь','Июль','Август','Сентябрь','Октябрь','Ноябрь','Декабрь'];
 const AGENDA_WEEKDAYS = ['вс','пн','вт','ср','чт','пт','сб'];
 function changeCalendarMonth(delta){
   calendarDate = new Date(calendarDate.getFullYear(), calendarDate.getMonth()+delta, 1);
   renderPlan();
+}
+function setTableViewPeriod(p){ tableViewPeriod = p; renderPlan(); }
+function changeTablePeriod(delta){
+  if(tableViewPeriod==='week'){
+    tableCalendarDate = new Date(tableCalendarDate.getFullYear(), tableCalendarDate.getMonth(), tableCalendarDate.getDate()+delta*7);
+  } else {
+    tableCalendarDate = new Date(tableCalendarDate.getFullYear(), tableCalendarDate.getMonth()+delta, 1);
+  }
+  renderPlan();
+}
+function getWeekRange(date){
+  const d = new Date(date);
+  const offset = (d.getDay()+6)%7;
+  const monday = new Date(d); monday.setDate(d.getDate()-offset);
+  const sunday = new Date(monday); sunday.setDate(monday.getDate()+6);
+  return { monday, sunday };
+}
+function renderPlanTable(items){
+  let days = [];
+  let navLabel = '';
+  if(tableViewPeriod==='week'){
+    const { monday, sunday } = getWeekRange(tableCalendarDate);
+    for(let i=0;i<7;i++){ const d=new Date(monday); d.setDate(d.getDate()+i); days.push(d); }
+    navLabel = `${formatShortDate(monday)} – ${formatShortDate(sunday)}`;
+  } else {
+    const year = tableCalendarDate.getFullYear();
+    const month = tableCalendarDate.getMonth();
+    const daysInMonth = new Date(year, month+1, 0).getDate();
+    for(let d=1; d<=daysInMonth; d++){ days.push(new Date(year, month, d)); }
+    navLabel = `${MONTH_NAMES[month]} ${year}`;
+  }
+  const todayStr = toDateStr(new Date());
+
+  let rows = '<div class="plan-table-head"></div>' + PLATFORMS.map(p=>`<div class="plan-table-head">${p}</div>`).join('');
+  days.forEach(dateObj=>{
+    const dateStr = toDateStr(dateObj);
+    const dayItems = items.filter(it=>it.date===dateStr);
+    const isToday = dateStr===todayStr;
+    rows += `<div class="plan-table-day ${isToday?'today':''}">${dateObj.getDate()}<br>${AGENDA_WEEKDAYS[dateObj.getDay()]}</div>`;
+    rows += PLATFORMS.map(p=>{
+      const matching = dayItems.filter(it=>(it.platforms||[]).includes(p));
+      if(matching.length===0) return `<div class="plan-table-cell"></div>`;
+      const chips = matching.map(it=>{
+        const r = rubricDisplay(it.rubric);
+        return `<div class="plan-table-item" style="background:${r.bg};color:${r.fg};">${escapeHtml(it.topic)}</div>`;
+      }).join('');
+      return `<div class="plan-table-cell">${chips}</div>`;
+    }).join('');
+  });
+
+  return `<div class="plan-view-row">
+      <div class="chip-row" style="margin:0;">
+        <button class="chip-btn ${tableViewPeriod==='week'?'active':''}" onclick="setTableViewPeriod('week')">Неделя</button>
+        <button class="chip-btn ${tableViewPeriod==='month'?'active':''}" onclick="setTableViewPeriod('month')">Месяц</button>
+      </div>
+      <div class="calendar-nav" style="margin:0;">
+        <button onclick="changeTablePeriod(-1)">‹</button>
+        <div class="cal-title">${navLabel}</div>
+        <button onclick="changeTablePeriod(1)">›</button>
+      </div>
+    </div>
+    <div class="plan-table">${rows}</div>`;
 }
 function renderMonthAgenda(items){
   const year = calendarDate.getFullYear();
@@ -1462,24 +1697,22 @@ function renderMonthAgenda(items){
   monthItems.forEach(it=>{ (byDate[it.date]=byDate[it.date]||[]).push(it); });
   const dates = Object.keys(byDate).sort();
 
-  let body = '';
-  if(dates.length===0){
-    body = '<div class="empty">В этом месяце пока ничего не запланировано.</div>';
-  } else {
-    dates.forEach(dateStr=>{
-      const d = new Date(dateStr+'T00:00:00');
-      const label = `${AGENDA_WEEKDAYS[d.getDay()]}, ${d.getDate()} ${MONTH_NAMES[d.getMonth()].toLowerCase()}`;
-      body += `<div class="agenda-day-label">${label}</div>`;
-      body += byDate[dateStr].map(it=>renderItemCard(it)).join('');
-    });
-  }
-
-  return `<div class="calendar-nav">
+  let body = `<div class="calendar-nav">
       <button onclick="changeCalendarMonth(-1)">‹</button>
       <div class="cal-title">${MONTH_NAMES[month]} ${year}</div>
       <button onclick="changeCalendarMonth(1)">›</button>
-    </div>
-    ${body}`;
+    </div>`;
+  if(dates.length===0){
+    body += '<div class="empty">В этом месяце пока ничего не запланировано.</div>';
+    return body;
+  }
+  dates.forEach(dateStr=>{
+    const d = new Date(dateStr+'T00:00:00');
+    const label = `${AGENDA_WEEKDAYS[d.getDay()]}, ${d.getDate()} ${MONTH_NAMES[d.getMonth()].toLowerCase()}`;
+    body += `<div class="agenda-day-label">${label}</div>`;
+    body += byDate[dateStr].map(it=>renderItemCard(it)).join('');
+  });
+  return body;
 }
 function renderNoDateSection(items){
   const noDate = items.filter(it=>!it.date);
@@ -1491,32 +1724,55 @@ function renderPlan(){
   renderWeekCalendar();
   renderDashboard();
   const container = document.getElementById('plan-list');
-  const filtered = getFilteredItems();
+  const baseFiltered = getFilteredItems();
+  const filtered = baseFiltered.filter(it => planShowArchive ? it.published : !it.published);
 
-  let html = `<div class="filter-bar">
-    <select onchange="updateFilter('rubric', this.value)">
-      <option value="">Все рубрики</option>
-      <option value="none" ${filterState.rubric==='none'?'selected':''}>Без рубрики</option>
-      ${RUBRICS.map(r=>`<option value="${r.key}" ${filterState.rubric===r.key?'selected':''}>${r.label}</option>`).join('')}
-    </select>
-    <select onchange="updateFilter('platform', this.value)">
-      <option value="">Все площадки</option>
-      ${PLATFORMS.map(p=>`<option value="${p}" ${filterState.platform===p?'selected':''}>${p}</option>`).join('')}
-    </select>
-    <select onchange="updateFilter('stage', this.value)">
-      <option value="">Любая стадия</option>
-      <option value="draft" ${filterState.stage==='draft'?'selected':''}>Черновик</option>
-      <option value="filmed" ${filterState.stage==='filmed'?'selected':''}>Отснято</option>
-      <option value="edited" ${filterState.stage==='edited'?'selected':''}>Смонтировано</option>
-      <option value="published" ${filterState.stage==='published'?'selected':''}>Опубликовано</option>
-    </select>
-  </div>`;
+  const hasActiveFilter = !!(filterState.rubric || filterState.platform || filterState.stage);
+  const filterBtn = document.getElementById('plan-filter-toggle-btn');
+  if(filterBtn) filterBtn.classList.toggle('has-active', hasActiveFilter);
+  const archiveBtn = document.getElementById('plan-archive-toggle-btn');
+  if(archiveBtn) archiveBtn.classList.toggle('has-active', planShowArchive);
+
+  let html = '';
+  if(planFiltersOpen){
+    html += `<div class="plan-panel">
+      <div class="filter-bar" style="margin-bottom:0;">
+        <select onchange="updateFilter('rubric', this.value)">
+          <option value="">Все рубрики</option>
+          <option value="none" ${filterState.rubric==='none'?'selected':''}>Без рубрики</option>
+          ${RUBRICS.map(r=>`<option value="${r.key}" ${filterState.rubric===r.key?'selected':''}>${r.label}</option>`).join('')}
+        </select>
+        <select onchange="updateFilter('platform', this.value)">
+          <option value="">Все площадки</option>
+          ${PLATFORMS.map(p=>`<option value="${p}" ${filterState.platform===p?'selected':''}>${p}</option>`).join('')}
+        </select>
+        <select onchange="updateFilter('stage', this.value)">
+          <option value="">Любая стадия</option>
+          <option value="draft" ${filterState.stage==='draft'?'selected':''}>Черновик</option>
+          <option value="filmed" ${filterState.stage==='filmed'?'selected':''}>Отснято</option>
+          <option value="edited" ${filterState.stage==='edited'?'selected':''}>Смонтировано</option>
+          <option value="published" ${filterState.stage==='published'?'selected':''}>Опубликовано</option>
+        </select>
+      </div>
+      ${hasActiveFilter? `<button class="del" style="margin-top:8px;" onclick="resetPlanFilters()">Сбросить фильтры</button>` : ''}
+    </div>`;
+  }
+
+  if(planShowArchive){
+    html += `<div class="section-sub">📦 Архив — уже опубликовано</div>`;
+  }
 
   if(filtered.length===0){
-    html += '<div class="empty">Ничего не найдено — измени фильтры или добавь тему выше (или загляни во вкладку «Идеи»).</div>';
+    html += planShowArchive
+      ? '<div class="empty">Пока ничего не опубликовано.</div>'
+      : '<div class="empty">Ничего не найдено — измени фильтры или добавь тему выше (или загляни во вкладку «Идеи»).</div>';
   } else {
     html += renderNoDateSection(filtered);
-    html += renderMonthAgenda(filtered);
+    html += `<div class="chip-row" style="margin-bottom:10px;">
+      <button class="chip-btn ${planViewMode==='list'?'active':''}" onclick="setPlanViewMode('list')">Список</button>
+      <button class="chip-btn ${planViewMode==='table'?'active':''}" onclick="setPlanViewMode('table')">Таблица</button>
+    </div>`;
+    html += planViewMode==='table' ? renderPlanTable(filtered) : renderMonthAgenda(filtered);
   }
   container.innerHTML = html;
 }
@@ -1530,7 +1786,7 @@ function addContentItem(){
   if(document.getElementById('plan-plat-ig').checked) platforms.push('Instagram');
   if(document.getElementById('plan-plat-yt').checked) platforms.push('YouTube');
   const shootDate = date ? subtractDays(date,2) : '';
-  contentItems.push({id:uid(), topic, rubric, platforms, date, shootDate, script:'', caption:'', format:suggestFormat(platforms), shootList:[], filmed:false, edited:false, published:false});
+  contentItems.push({id:uid(), topic, rubric, platforms, date, shootDate, script:'', caption:'', format:suggestFormat(platforms), shootList:[], scriptWritten:false, filmed:false, edited:false, published:false});
   document.getElementById('plan-topic').value='';
   document.getElementById('plan-date').value='';
   saveData('content-items', contentItems);
@@ -1570,11 +1826,15 @@ function updateStage(id, stage, val){
   const it = contentItems.find(i=>i.id===id);
   if(!it) return;
   it[stage] = val;
-  if(stage==='filmed' && !val){ it.edited=false; it.published=false; it.publishedAt=null; }
-  if(stage==='edited'){ if(val) it.filmed=true; else { it.published=false; it.publishedAt=null; } }
+  if(stage==='scriptWritten' && !val){ it.filmed=false; it.edited=false; it.published=false; it.publishedAt=null; }
+  if(stage==='filmed'){
+    if(val) it.scriptWritten=true;
+    else { it.edited=false; it.published=false; it.publishedAt=null; }
+  }
+  if(stage==='edited'){ if(val){ it.filmed=true; it.scriptWritten=true; } else { it.published=false; it.publishedAt=null; } }
   if(stage==='published'){
     if(val){
-      it.filmed=true; it.edited=true;
+      it.filmed=true; it.edited=true; it.scriptWritten=true;
       it.publishedAt = toDateStr(new Date());
       syncPostAnalyticsFor(it);
     } else {
@@ -1582,7 +1842,7 @@ function updateStage(id, stage, val){
     }
   }
   saveData('content-items', contentItems);
-  renderPlan(); renderShootPlan(); renderMotivation(); renderAnalytics();
+  renderPlan(); renderShootPlan(); renderMotivation(); renderAnalytics(); renderDashboard();
 }
 function syncPostAnalyticsFor(it){
   const plats = (it.platforms && it.platforms.length) ? it.platforms : [''];
@@ -1598,7 +1858,7 @@ function syncPostAnalyticsFor(it){
 }
 
 /* ---------- shooting planner ---------- */
-const SHOOT_TYPES = ['Видео','Закадровый голос','Фото'];
+const SHOOT_TYPES = ['Видео','Закадровый голос','Фото','Текст'];
 function suggestFormat(platforms){
   if((platforms||[]).some(p=>p==='Instagram'||p==='YouTube')) return 'video';
   if((platforms||[]).includes('Telegram')) return 'text';
@@ -1622,9 +1882,6 @@ function toggleShootTask(itemId, taskId, checked){
   if(!it) return;
   const t = (it.shootList||[]).find(x=>x.id===taskId);
   if(t) t.done = checked;
-  if(it.shootList && it.shootList.length>0 && it.shootList.every(x=>x.done)){
-    it.filmed = true;
-  }
   saveData('content-items', contentItems);
   renderShootPlan(); renderPlan(); renderMotivation();
 }
@@ -1662,7 +1919,7 @@ function renderShootCard(it){
   const formatLabel = format==='video' ? '🎥 Видео' : format==='photo' ? '📷 Фото' : '📝 Текст';
   const tasks = it.shootList || [];
   const isTextOpen = shootExpanded.has(it.id);
-  const shootTypeOptions = isVideo ? SHOOT_TYPES : ['Фото'];
+  const shootTypeOptions = isVideo ? SHOOT_TYPES : ['Фото','Текст'];
 
   const tasksHtml = tasks.length? tasks.map(t=>`
     <div class="shoot-task ${t.done?'done':''}">
@@ -1726,7 +1983,7 @@ function addManualShootItem(){
   if(!topic) return;
   const format = document.getElementById('shoot-manual-format').value;
   const shootDate = document.getElementById('shoot-manual-date').value;
-  contentItems.push({id:uid(), topic, rubric:'', platforms:[], date:'', shootDate, script:'', caption:'', format, shootList:[], filmed:false, edited:false, published:false, noPost:true});
+  contentItems.push({id:uid(), topic, rubric:'', platforms:[], date:'', shootDate, script:'', caption:'', format, shootList:[], scriptWritten:false, filmed:false, edited:false, published:false, noPost:true});
   document.getElementById('shoot-manual-topic').value='';
   document.getElementById('shoot-manual-date').value='';
   saveData('content-items', contentItems);
@@ -1877,7 +2134,8 @@ function renderPlatformAnalytics(container){
     chartHtml = `<div class="chart-bars">${bars}</div>`;
   }
 
-  const listRows = withDelta.slice().sort((a,b)=>(b.date||'').localeCompare(a.date||'')).map(e=>{
+  const listRows = withDelta.filter(e=>e.platform===analyticsPlatform)
+    .sort((a,b)=>(b.date||'').localeCompare(a.date||'')).map(e=>{
     const fd = e._fd!=null ? `<span class="delta ${e._fd>=0?'up':'down'}">${e._fd>=0?'+':''}${e._fd}</span>` : '';
     const rd = e._rd!=null ? `<span class="delta ${e._rd>=0?'up':'down'}">${e._rd>=0?'+':''}${e._rd}</span>` : '';
     const ed = e._ed!=null ? `<span class="delta ${e._ed>=0?'up':'down'}">${e._ed>=0?'+':''}${e._ed}</span>` : '';
@@ -1890,13 +2148,12 @@ function renderPlatformAnalytics(container){
       <div class="an-row-nums">👥 ${e.followers ?? '—'}${fd} &nbsp; 👁 ${e.reach ?? '—'}${rd} &nbsp; ER ${e.er!=null? e.er+'%':'—'}${ed}</div>
       ${e.note? `<div class="an-row-note">${escapeHtml(e.note)}</div>` : ''}
     </div>`;
-  }).join('');
+  }).join('') || `<div class="empty">Нет записей для ${analyticsPlatform}.</div>`;
 
   container.innerHTML = `
     <div class="chip-row">${platTabs}</div>
     <div class="chip-row" style="margin-bottom:14px;">${metricTabs}</div>
     <div class="chart-wrap">${chartHtml}</div>
-    <div class="section-sub">Все записи</div>
     ${listRows}
   `;
 }
@@ -1937,8 +2194,7 @@ function renderPostAnalytics(container){
     chartHtml = `<div class="chart-bars">${bars}</div>`;
   }
 
-  const sorted = postAnalytics.slice().sort((a,b)=>(b.date||'').localeCompare(a.date||''));
-  const listRows = sorted.map(p=>{
+  function renderPostRow(p){
     const linkedBadge = p.contentItemId ? '<span class="pa-source">из контент-плана</span>' : '';
     return `<div class="an-row">
       <div class="an-row-top">
@@ -1948,20 +2204,25 @@ function renderPostAnalytics(container){
         <button class="del" onclick="deletePostAnalytics('${p.id}')" style="margin-left:auto;">×</button>
       </div>
       <div class="ic-topic" style="font-size:14px;margin:6px 0;">${escapeHtml(p.topic||'Без темы')}</div>
-      <div class="pa-nums">
-        <label>👁 <input type="number" value="${p.views ?? ''}" placeholder="просмотры" onchange="updatePostAnalytics('${p.id}','views',this.value)"></label>
-        <label>📣 <input type="number" value="${p.reach ?? ''}" placeholder="охваты" onchange="updatePostAnalytics('${p.id}','reach',this.value)"></label>
-        <label>❤️ <input type="number" value="${p.reactions ?? ''}" placeholder="реакции" onchange="updatePostAnalytics('${p.id}','reactions',this.value)"></label>
-        <label>👥+ <input type="number" value="${p.newSubscribers ?? ''}" placeholder="подписчики" onchange="updatePostAnalytics('${p.id}','newSubscribers',this.value)"></label>
+      <div class="metric-grid">
+        <div class="metric-item"><div class="metric-item-label">Просмотры</div><input type="number" value="${p.views ?? ''}" onchange="updatePostAnalytics('${p.id}','views',this.value)"></div>
+        <div class="metric-item"><div class="metric-item-label">Охваты</div><input type="number" value="${p.reach ?? ''}" onchange="updatePostAnalytics('${p.id}','reach',this.value)"></div>
+        <div class="metric-item"><div class="metric-item-label">Реакции</div><input type="number" value="${p.reactions ?? ''}" onchange="updatePostAnalytics('${p.id}','reactions',this.value)"></div>
+        <div class="metric-item"><div class="metric-item-label">Подписчики</div><input type="number" value="${p.newSubscribers ?? ''}" onchange="updatePostAnalytics('${p.id}','newSubscribers',this.value)"></div>
       </div>
     </div>`;
-  }).join('');
+  }
+
+  const listForPlatform = postAnalytics.filter(p=>p.platform===postPlatformFilter)
+    .sort((a,b)=>(b.date||'').localeCompare(a.date||''));
+  const listRows = listForPlatform.length
+    ? listForPlatform.map(renderPostRow).join('')
+    : `<div class="empty">Нет постов для ${postPlatformFilter||'этой площадки'}.</div>`;
 
   container.innerHTML = `
     <div class="chip-row">${platTabs}</div>
     <div class="chip-row" style="margin-bottom:14px;">${metricTabs}</div>
     <div class="chart-wrap">${chartHtml}</div>
-    <div class="section-sub">Все посты</div>
     ${listRows}
   `;
 }
@@ -2019,11 +2280,20 @@ function deletePostAnalytics(id){
 
 /* ---------- promotion ---------- */
 let promotions = [];
+let promoPlans = [];
 let promoFilter = '';
+let promoMode = 'plan';
+let promoAddOpen = false;
 function setPromoFilter(p){ promoFilter = p; renderPromotions(); }
+function setPromoMode(m){ promoMode = m; promoAddOpen = false; renderPromotions(); }
+function togglePromoAddForm(){ promoAddOpen = !promoAddOpen; renderPromotions(); }
 function costPerSub(p){
   if(!p.cost || !p.subscribers) return null;
   return +(p.cost/p.subscribers).toFixed(2);
+}
+function forecastClicksFor(p){
+  if(p.avgReach==null || p.er==null) return null;
+  return Math.round(p.avgReach * (p.er/100));
 }
 function addPromotion(){
   const source = document.getElementById('promo-source').value.trim();
@@ -2037,8 +2307,8 @@ function addPromotion(){
     id:uid(), source, platform, date,
     cost: cost?Number(cost):null, reach: reach?Number(reach):null, subscribers: subs?Number(subs):null
   });
-  ['promo-source','promo-date','promo-cost','promo-reach','promo-subs'].forEach(id=>document.getElementById(id).value='');
   saveData('promotions', promotions);
+  promoAddOpen = false;
   renderPromotions();
   renderDashboard();
 }
@@ -2056,58 +2326,184 @@ function deletePromotion(id){
   renderPromotions();
   renderDashboard();
 }
-function renderPromotions(){
-  const filterEl = document.getElementById('promo-filter-row');
-  const summaryEl = document.getElementById('promo-summary');
-  const listEl = document.getElementById('promo-list');
-  if(!listEl) return;
 
-  if(filterEl){
-    filterEl.innerHTML = `<button class="chip-btn ${promoFilter===''?'active':''}" onclick="setPromoFilter('')">Все</button>` +
-      PLATFORMS.map(p=>`<button class="chip-btn ${promoFilter===p?'active':''}" onclick="setPromoFilter('${p}')">${p}</button>`).join('');
+function addPromoPlan(){
+  const channel = document.getElementById('pp-channel').value.trim();
+  if(!channel) return;
+  const topic = document.getElementById('pp-topic').value.trim();
+  const targetPlatform = document.getElementById('pp-platform').value;
+  const subscribers = document.getElementById('pp-subs').value;
+  const avgReach = document.getElementById('pp-reach').value;
+  const er = document.getElementById('pp-er').value;
+  const manager = document.getElementById('pp-manager').value.trim();
+  const cost = document.getElementById('pp-cost').value;
+  const note = document.getElementById('pp-note').value.trim();
+  promoPlans.push({
+    id: uid(), channel, topic, targetPlatform,
+    subscribers: subscribers?Number(subscribers):null,
+    avgReach: avgReach?Number(avgReach):null,
+    er: er?Number(er):null,
+    manager, cost: cost?Number(cost):null, note
+  });
+  saveData('promo-plans', promoPlans);
+  promoAddOpen = false;
+  renderPromotions();
+}
+function updatePromoPlan(id, field, val, isNumber){
+  const p = promoPlans.find(x=>x.id===id);
+  if(!p) return;
+  p[field] = isNumber ? (val===''?null:Number(val)) : val;
+  saveData('promo-plans', promoPlans);
+  renderPromotions();
+}
+function deletePromoPlan(id){
+  promoPlans = promoPlans.filter(x=>x.id!==id);
+  saveData('promo-plans', promoPlans);
+  renderPromotions();
+}
+function convertPromoPlanToFact(id){
+  const p = promoPlans.find(x=>x.id===id);
+  if(!p) return;
+  promotions.push({
+    id: uid(), source: p.channel, platform: p.targetPlatform, date: '',
+    cost: p.cost, reach: null, subscribers: null
+  });
+  promoPlans = promoPlans.filter(x=>x.id!==id);
+  saveData('promo-plans', promoPlans);
+  saveData('promotions', promotions);
+  setPromoMode('fact');
+  renderDashboard();
+}
+
+function renderPromotions(){
+  const container = document.getElementById('promo-content');
+  if(!container) return;
+
+  const modeRow = `<div class="chip-row" style="margin-bottom:10px;">
+    <button class="chip-btn ${promoMode==='plan'?'active':''}" onclick="setPromoMode('plan')">План</button>
+    <button class="chip-btn ${promoMode==='fact'?'active':''}" onclick="setPromoMode('fact')">Факт</button>
+  </div>`;
+
+  const filterRow = `<div class="chip-row" style="margin-bottom:14px;">
+    <button class="chip-btn ${promoFilter===''?'active':''}" onclick="setPromoFilter('')">Все</button>
+    ${PLATFORMS.map(p=>`<button class="chip-btn ${promoFilter===p?'active':''}" onclick="setPromoFilter('${p}')">${p}</button>`).join('')}
+  </div>`;
+
+  const addToggle = `<button class="btn-ghost" onclick="togglePromoAddForm()">${promoAddOpen? '× Свернуть' : '+ Новая позиция'}</button>`;
+
+  let addPanel = '';
+  if(promoAddOpen){
+    if(promoMode==='plan'){
+      addPanel = `<div class="plan-panel">
+        <input type="text" id="pp-channel" placeholder="Канал / блогер" style="width:100%;margin-bottom:8px;">
+        <div class="edit-fields">
+          <input type="text" id="pp-topic" placeholder="Тематика">
+          <select id="pp-platform">${PLATFORMS.map(p=>`<option value="${p}">${p}</option>`).join('')}</select>
+          <input type="number" id="pp-subs" placeholder="Подписчики">
+          <input type="number" id="pp-reach" placeholder="Ср. охват на пост">
+          <input type="number" id="pp-er" placeholder="ER %" step="0.1">
+          <input type="text" id="pp-manager" placeholder="Менеджер / контакт">
+          <input type="number" id="pp-cost" placeholder="Стоимость (пусто = ждём ответ)">
+        </div>
+        <textarea id="pp-note" placeholder="Комментарий..." style="margin-bottom:8px;"></textarea>
+        <button class="btn" style="margin-top:0;" onclick="addPromoPlan()">Добавить в план</button>
+      </div>`;
+    } else {
+      addPanel = `<div class="plan-panel">
+        <input type="text" id="promo-source" placeholder="Блогер / канал / кабинет" style="width:100%;margin-bottom:8px;">
+        <div class="edit-fields">
+          <select id="promo-platform">${PLATFORMS.map(p=>`<option value="${p}">${p}</option>`).join('')}</select>
+          <input type="date" id="promo-date">
+          <input type="number" id="promo-cost" placeholder="Стоимость">
+          <input type="number" id="promo-reach" placeholder="Охват">
+          <input type="number" id="promo-subs" placeholder="Подписчики">
+        </div>
+        <button class="btn" style="margin-top:8px;" onclick="addPromotion()">Добавить в факт</button>
+      </div>`;
+    }
   }
 
-  const filtered = promoFilter ? promotions.filter(p=>p.platform===promoFilter) : promotions;
-
-  if(summaryEl){
+  let bodyHtml = '';
+  if(promoMode==='plan'){
+    const filtered = promoFilter ? promoPlans.filter(p=>p.targetPlatform===promoFilter) : promoPlans;
     if(filtered.length===0){
-      summaryEl.innerHTML = '';
+      bodyHtml = '<div class="empty">Пока нет каналов на примете — добавь первый выше.</div>';
     } else {
+      bodyHtml = filtered.slice().reverse().map(p=>{
+        const clicks = forecastClicksFor(p);
+        const cpc = (p.cost && clicks) ? (p.cost/clicks).toFixed(2) : null;
+        return `<div class="an-row">
+          <div class="an-row-top">
+            ${p.targetPlatform? `<span class="plat-tag">${p.targetPlatform}</span>` : ''}
+            ${p.topic? `<span class="plat-tag">${escapeHtml(p.topic)}</span>` : ''}
+            <button class="del" onclick="deletePromoPlan('${p.id}')" style="margin-left:auto;">×</button>
+          </div>
+          <div class="ic-topic" style="font-size:14px;margin:6px 0;">${escapeHtml(p.channel||'Без названия')}</div>
+          <div class="metric-grid">
+            <div class="metric-item">
+              <div class="metric-item-label">Подписчики</div>
+              <input type="number" value="${p.subscribers ?? ''}" onchange="updatePromoPlan('${p.id}','subscribers',this.value,true)">
+            </div>
+            <div class="metric-item">
+              <div class="metric-item-label">Ср. охват</div>
+              <input type="number" value="${p.avgReach ?? ''}" onchange="updatePromoPlan('${p.id}','avgReach',this.value,true)">
+            </div>
+            <div class="metric-item">
+              <div class="metric-item-label">ER %</div>
+              <input type="number" value="${p.er ?? ''}" onchange="updatePromoPlan('${p.id}','er',this.value,true)">
+            </div>
+          </div>
+          <div style="font-size:12.5px;color:var(--ink-soft);margin-top:8px;">
+            Прогноз кликов: <strong>${clicks ?? '—'}</strong>
+            ${p.manager? ` &nbsp;·&nbsp; Контакт: ${escapeHtml(p.manager)}` : ''}
+            &nbsp;·&nbsp; Стоимость: <strong>${p.cost!=null? p.cost : 'Ждём ответ'}</strong>
+            ${cpc? ` &nbsp;·&nbsp; цена клика прогноз: <strong>${cpc}</strong>` : ''}
+          </div>
+          <textarea placeholder="Комментарий..." onchange="updatePromoPlan('${p.id}','note',this.value,false)">${escapeHtml(p.note||'')}</textarea>
+          <button class="btn-ghost" style="margin-top:10px;" onclick="convertPromoPlanToFact('${p.id}')">Разместили →</button>
+        </div>`;
+      }).join('');
+    }
+  } else {
+    const filtered = promoFilter ? promotions.filter(p=>p.platform===promoFilter) : promotions;
+    let summaryHtml = '';
+    if(filtered.length>0){
       const totalCost = filtered.reduce((s,p)=>s+(p.cost||0),0);
       const totalReach = filtered.reduce((s,p)=>s+(p.reach||0),0);
       const totalSubs = filtered.reduce((s,p)=>s+(p.subscribers||0),0);
       const avgCps = totalSubs>0 ? +(totalCost/totalSubs).toFixed(2) : null;
-      summaryEl.innerHTML = `<div class="dash-row" style="margin-bottom:16px;">
+      summaryHtml = `<div class="dash-row" style="margin-bottom:16px;">
         <div class="dash-card"><div class="dash-card-name">Потрачено</div><div class="dash-card-num">${totalCost}</div></div>
         <div class="dash-card"><div class="dash-card-name">Охват</div><div class="dash-card-num">${totalReach}</div></div>
         <div class="dash-card"><div class="dash-card-name">Подписчики</div><div class="dash-card-num">${totalSubs}</div></div>
         <div class="dash-card"><div class="dash-card-name">Цена подписчика</div><div class="dash-card-num">${avgCps ?? '—'}</div></div>
       </div>`;
     }
+    if(filtered.length===0){
+      bodyHtml = summaryHtml + '<div class="empty">Пока нет размещённой рекламы — добавь вручную выше или перенеси из плана.</div>';
+    } else {
+      const sorted = filtered.slice().sort((a,b)=>(b.date||'').localeCompare(a.date||''));
+      bodyHtml = summaryHtml + sorted.map(p=>{
+        const cps = costPerSub(p);
+        return `<div class="an-row">
+          <div class="an-row-top">
+            <span class="plat-tag">${p.platform||'—'}</span>
+            <span class="an-row-date">${p.date||'без даты'}</span>
+            <button class="del" onclick="deletePromotion('${p.id}')" style="margin-left:auto;">×</button>
+          </div>
+          <div class="ic-topic" style="font-size:14px;margin:6px 0;">${escapeHtml(p.source||'Без названия')}</div>
+          <div class="pa-nums">
+            <label>💰 <input type="number" value="${p.cost ?? ''}" placeholder="стоимость" onchange="updatePromotion('${p.id}','cost',this.value)"></label>
+            <label>📣 <input type="number" value="${p.reach ?? ''}" placeholder="охват" onchange="updatePromotion('${p.id}','reach',this.value)"></label>
+            <label>👥 <input type="number" value="${p.subscribers ?? ''}" placeholder="подписчики" onchange="updatePromotion('${p.id}','subscribers',this.value)"></label>
+          </div>
+          <div style="font-size:12.5px;color:var(--ink-soft);margin-top:8px;">Цена подписчика: <strong>${cps!=null? cps : '—'}</strong></div>
+        </div>`;
+      }).join('');
+    }
   }
 
-  if(filtered.length===0){
-    listEl.innerHTML = '<div class="empty">Пока нет записей о продвижении — добавь первую выше.</div>';
-    return;
-  }
-  const sorted = filtered.slice().sort((a,b)=>(b.date||'').localeCompare(a.date||''));
-  listEl.innerHTML = sorted.map(p=>{
-    const cps = costPerSub(p);
-    return `<div class="an-row">
-      <div class="an-row-top">
-        <span class="plat-tag">${p.platform||'—'}</span>
-        <span class="an-row-date">${p.date||'без даты'}</span>
-        <button class="del" onclick="deletePromotion('${p.id}')" style="margin-left:auto;">×</button>
-      </div>
-      <div class="ic-topic" style="font-size:14px;margin:6px 0;">${escapeHtml(p.source||'Без названия')}</div>
-      <div class="pa-nums">
-        <label>💰 <input type="number" value="${p.cost ?? ''}" placeholder="стоимость" onchange="updatePromotion('${p.id}','cost',this.value)"></label>
-        <label>📣 <input type="number" value="${p.reach ?? ''}" placeholder="охват" onchange="updatePromotion('${p.id}','reach',this.value)"></label>
-        <label>👥 <input type="number" value="${p.subscribers ?? ''}" placeholder="подписчики" onchange="updatePromotion('${p.id}','subscribers',this.value)"></label>
-      </div>
-      <div style="font-size:12.5px;color:var(--ink-soft);margin-top:8px;">Цена подписчика: <strong>${cps!=null? cps : '—'}</strong></div>
-    </div>`;
-  }).join('');
+  container.innerHTML = modeRow + filterRow + addToggle + addPanel + bodyHtml;
 }
 
 /* ---------- init ---------- */
@@ -2135,13 +2531,15 @@ async function init(){
     if(!it.platforms) it.platforms = it.platform ? [it.platform] : [];
     if(it.shootDate===undefined) it.shootDate = it.date ? subtractDays(it.date,2) : '';
     if(!it.shootList) it.shootList = [];
+    if(it.scriptWritten===undefined) it.scriptWritten = !!it.filmed;
     if(!it.format) it.format = 'video';
     if(it.caption===undefined) it.caption = '';
   });
   analyticsEntries = await loadData('analytics-entries', []);
   postAnalytics = await loadData('post-analytics', []);
-  streakState = await loadData('streak-state', { lastCelebratedCycle: -1 });
+  streakState = await loadData('streak-state', { lastCelebratedWeekStart: null });
   promotions = await loadData('promotions', []);
+  promoPlans = await loadData('promo-plans', []);
   contentItems.forEach(it=>{ if(it.published) syncPostAnalyticsFor(it); });
 
   renderChecklist();
@@ -2151,6 +2549,7 @@ async function init(){
   renderPromotions();
   renderAnalytics();
   renderMotivation();
+  setTimeout(()=>{ maybeShowDailyWish(); }, 500);
 }
 init();
 </script>
