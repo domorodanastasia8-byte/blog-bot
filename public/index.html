@@ -984,7 +984,11 @@ function renderDashboard(){
   const promoCost = periodPromos.reduce((s,p)=>s+(p.cost||0),0);
   const promoSubs = periodPromos.reduce((s,p)=>s+(p.subscribers||0),0);
   const promoCps = promoSubs>0 ? +(promoCost/promoSubs).toFixed(2) : null;
-  const topPosts = periodPosts.slice().sort((a,b)=>(b.views||0)-(a.views||0)).slice(0,5);
+  const topPosts = PLATFORMS.map(plat=>{
+    const platPosts = periodPosts.filter(p=>p.platform===plat);
+    if(platPosts.length===0) return null;
+    return platPosts.slice().sort((a,b)=>(b.views||0)-(a.views||0))[0];
+  }).filter(Boolean).sort((a,b)=>(b.views||0)-(a.views||0));
   const bestPost = topPosts[0];
 
   const todayStr = toDateStr(new Date());
