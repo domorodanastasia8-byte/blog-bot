@@ -530,8 +530,13 @@ textarea{width:100%;resize:vertical;min-height:64px;margin-top:8px;}
 
     <!-- SHOOTING PLANNER -->
     <section class="tab-panel" id="tab-shoot">
-      <p style="font-size:13px;color:var(--ink-soft);margin:0 0 12px;">Опубликованные и запланированные темы попадают сюда сами. Дата съёмки предлагается за 2 дня до публикации — можно поменять. Ниже можно добавить и кадры без привязки к посту — появятся в общем списке.</p>
-      <div class="an-form" style="grid-template-columns:2fr 1fr 1fr auto;margin-bottom:18px;">
+      <p style="font-size:13px;color:var(--ink-soft);margin:0 0 12px;">Опубликованные и запланированные темы попадают сюда сами. Дата съёмки предлагается за 2 дня до публикации — можно поменять.</p>
+      <div class="plan-toolbar">
+        <button class="btn-ghost" id="shoot-add-toggle-btn" onclick="toggleShootAddForm()">+ Кадры без поста</button>
+        <button class="btn-ghost" id="shoot-filter-toggle-btn" onclick="toggleShootFilters()">Фильтры</button>
+        <button class="btn-ghost" id="shoot-archive-toggle-btn" onclick="toggleShootArchive()">Архив</button>
+      </div>
+      <div class="an-form" id="shoot-add-panel" style="grid-template-columns:2fr 1fr 1fr auto;margin-bottom:18px;display:none;">
         <input type="text" id="shoot-manual-topic" placeholder="Что снять, без привязки к посту">
         <select id="shoot-manual-format">
           <option value="video">🎥 Видео</option>
@@ -540,6 +545,12 @@ textarea{width:100%;resize:vertical;min-height:64px;margin-top:8px;}
         </select>
         <input type="date" id="shoot-manual-date" title="Дата съёмки">
         <button class="btn" onclick="addManualShootItem()">+</button>
+      </div>
+      <div class="plan-panel" id="shoot-filter-panel" style="display:none;">
+        <div class="edit-fields">
+          <select id="shoot-rubric-filter" onchange="setShootRubricFilter(this.value)"></select>
+          <select id="shoot-platform-filter" onchange="setShootPlatformFilter(this.value)"></select>
+        </div>
       </div>
       <div id="shoot-list"></div>
     </section>
@@ -562,14 +573,13 @@ textarea{width:100%;resize:vertical;min-height:64px;margin-top:8px;}
         <select id="an-platform"></select>
         <input type="number" id="an-followers" placeholder="Подписчики">
         <input type="number" id="an-reach" placeholder="Охваты">
-        <input type="number" id="an-er" placeholder="ER %" step="0.1">
         <input type="text" id="an-note" placeholder="Заметка">
         <button class="btn" onclick="addAnalyticsEntry()">+</button>
       </div>
 
       <div class="an-form" id="an-form-posts" style="display:none;">
         <input type="text" id="pa-topic" placeholder="Тема поста">
-        <select id="pa-platform"></select>
+        <select id="pa-platform" onchange="togglePaSubsField()"></select>
         <input type="date" id="pa-date">
         <input type="number" id="pa-views" placeholder="Просмотры">
         <input type="number" id="pa-reach" placeholder="Охваты">
@@ -668,6 +678,9 @@ function fillSelects(){
   document.getElementById('plan-rubric').innerHTML = '<option value="">Без рубрики</option>' + RUBRICS.map(r=>`<option value="${r.key}">${r.label}</option>`).join('');
   document.getElementById('an-platform').innerHTML = PLATFORMS.map(p=>`<option value="${p}">${p}</option>`).join('');
   document.getElementById('pa-platform').innerHTML = PLATFORMS.map(p=>`<option value="${p}">${p}</option>`).join('');
+  document.getElementById('shoot-rubric-filter').innerHTML = '<option value="">Все рубрики</option><option value="none">Без рубрики</option>' + RUBRICS.map(r=>`<option value="${r.key}">${r.label}</option>`).join('');
+  document.getElementById('shoot-platform-filter').innerHTML = '<option value="">Все площадки</option>' + PLATFORMS.map(p=>`<option value="${p}">${p}</option>`).join('');
+  togglePaSubsField();
 }
 function rubricDisplay(key){
   if(!key) return {label:'Без рубрики', bg:'var(--muted-soft)', fg:'var(--muted)'};
@@ -708,6 +721,11 @@ function computeStreakThermometer(){
     if(!it.noPost && it.published){
       const d = it.publishedAt || it.date;
       if(d) publishedByDay[d] = (publishedByDay[d]||0) + 1;
+    }
+  });
+  postAnalytics.forEach(p=>{
+    if(!p.contentItemId && p.date){
+      publishedByDay[p.date] = (publishedByDay[p.date]||0) + 1;
     }
   });
   const publishedDates = Object.keys(publishedByDay).sort();
@@ -1811,8 +1829,19 @@ function updateScript(id, val){
 function updateItemField(id, field, val){
   const it = contentItems.find(i=>i.id===id);
   if(it){
+    if(field==='date'){
+      if(val && it.shootDate && it.date){
+        const oldDate = new Date(it.date+'T00:00:00');
+        const newDate = new Date(val+'T00:00:00');
+        const deltaDays = Math.round((newDate-oldDate)/86400000);
+        const oldShoot = new Date(it.shootDate+'T00:00:00');
+        oldShoot.setDate(oldShoot.getDate()+deltaDays);
+        it.shootDate = toDateStr(oldShoot);
+      } else if(val && !it.shootDate){
+        it.shootDate = subtractDays(val,2);
+      }
+    }
     it[field] = val;
-    if(field==='date' && val && !it.shootDate){ it.shootDate = subtractDays(val,2); }
   }
   saveData('content-items', contentItems);
   renderPlan(); renderShootPlan();
@@ -1982,6 +2011,23 @@ function updateShootDate(id, val){
   renderShootPlan(); renderPlan();
 }
 let shootFormatFilter = '';
+let shootRubricFilter = '';
+let shootPlatformFilter = '';
+let shootShowArchive = false;
+let shootFiltersOpen = false;
+let shootAddOpen = false;
+function toggleShootAddForm(){
+  shootAddOpen = !shootAddOpen;
+  document.getElementById('shoot-add-panel').style.display = shootAddOpen ? 'grid' : 'none';
+  document.getElementById('shoot-add-toggle-btn').textContent = shootAddOpen ? '× Свернуть' : '+ Кадры без поста';
+}
+function toggleShootFilters(){
+  shootFiltersOpen = !shootFiltersOpen;
+  document.getElementById('shoot-filter-panel').style.display = shootFiltersOpen ? 'block' : 'none';
+}
+function toggleShootArchive(){ shootShowArchive = !shootShowArchive; renderShootPlan(); }
+function setShootRubricFilter(v){ shootRubricFilter = v; renderShootPlan(); }
+function setShootPlatformFilter(v){ shootPlatformFilter = v; renderShootPlan(); }
 function addManualShootItem(){
   const topic = document.getElementById('shoot-manual-topic').value.trim();
   if(!topic) return;
@@ -2035,7 +2081,15 @@ function renderShootPlan(){
   renderDashboard();
   const container = document.getElementById('shoot-list');
   if(!container) return;
-  let todo = contentItems.filter(it=>!it.filmed);
+
+  const hasActiveFilter = !!(shootRubricFilter || shootPlatformFilter);
+  const filterBtn = document.getElementById('shoot-filter-toggle-btn');
+  if(filterBtn) filterBtn.classList.toggle('has-active', hasActiveFilter);
+  const archiveBtn = document.getElementById('shoot-archive-toggle-btn');
+  if(archiveBtn) archiveBtn.classList.toggle('has-active', shootShowArchive);
+
+  let todo = contentItems.filter(it => shootShowArchive ? it.filmed : !it.filmed);
+
   const filterBar = `<div class="chip-row" style="margin-bottom:14px;">
     <button class="chip-btn ${shootFormatFilter===''?'active':''}" onclick="setShootFormatFilter('')">Все</button>
     <button class="chip-btn ${shootFormatFilter==='video'?'active':''}" onclick="setShootFormatFilter('video')">🎥 Видео</button>
@@ -2045,12 +2099,25 @@ function renderShootPlan(){
   if(shootFormatFilter){
     todo = todo.filter(it=> (it.format||'video')===shootFormatFilter);
   }
+  if(shootRubricFilter==='none'){
+    todo = todo.filter(it=>!it.rubric);
+  } else if(shootRubricFilter){
+    todo = todo.filter(it=>it.rubric===shootRubricFilter);
+  }
+  if(shootPlatformFilter){
+    todo = todo.filter(it=>(it.platforms||[]).includes(shootPlatformFilter));
+  }
+
+  const archiveNote = shootShowArchive ? '<div class="section-sub">📦 Архив — уже отснято</div>' : '';
+
   if(todo.length===0){
-    container.innerHTML = filterBar + '<div class="empty">Ничего не найдено — новые темы появятся здесь автоматически, как только добавишь тему в план.</div>';
+    container.innerHTML = archiveNote + filterBar + (shootShowArchive
+      ? '<div class="empty">Пока ничего не отснято.</div>'
+      : '<div class="empty">Ничего не найдено — новые темы появятся здесь автоматически, как только добавишь тему в план.</div>');
     return;
   }
   const noDate = todo.filter(it=>!it.shootDate);
-  let html = filterBar;
+  let html = archiveNote + filterBar;
   if(noDate.length){
     html += '<div class="section-sub">Без даты съёмки — назначь день</div>';
     html += noDate.map(it=>renderShootCard(it)).join('');
@@ -2060,6 +2127,9 @@ function renderShootPlan(){
 }
 
 /* ---------- analytics ---------- */
+function computeER(followers, reach){
+  return (followers && reach) ? +(reach/followers*100).toFixed(1) : null;
+}
 function computeDisplayEntries(){
   const byPlatform = {};
   analyticsEntries.forEach(e=>{ (byPlatform[e.platform]=byPlatform[e.platform]||[]).push(e); });
@@ -2067,11 +2137,13 @@ function computeDisplayEntries(){
   Object.values(byPlatform).forEach(arr=>{
     const sortedAsc = arr.slice().sort((a,b)=>(a.date||'').localeCompare(b.date||''));
     sortedAsc.forEach((e,i)=>{
+      const er = computeER(e.followers, e.reach);
       const prev = sortedAsc[i-1];
+      const prevEr = prev ? computeER(prev.followers, prev.reach) : null;
       const fd = (prev && e.followers!=null && prev.followers!=null) ? e.followers - prev.followers : null;
       const rd = (prev && e.reach!=null && prev.reach!=null) ? e.reach - prev.reach : null;
-      const ed = (prev && e.er!=null && prev.er!=null) ? +(e.er - prev.er).toFixed(1) : null;
-      withDelta.push(Object.assign({}, e, {_fd:fd, _rd:rd, _ed:ed}));
+      const ed = (prevEr!=null && er!=null) ? +(er - prevEr).toFixed(1) : null;
+      withDelta.push(Object.assign({}, e, {er, _fd:fd, _rd:rd, _ed:ed}));
     });
   });
   return withDelta;
@@ -2170,11 +2242,12 @@ function renderPostAnalytics(container){
   if(!usedPlatforms.includes(postPlatformFilter)) postPlatformFilter = usedPlatforms[0] || '';
 
   const platTabs = usedPlatforms.map(p=>`<button class="chip-btn ${p===postPlatformFilter?'active':''}" onclick="setPostPlatform('${p}')">${p}</button>`).join('');
+  if(postPlatformFilter==='Telegram' && postMetric==='newSubscribers') postMetric = 'views';
   const metricTabs = `
     <button class="chip-btn ${postMetric==='views'?'active':''}" onclick="setPostMetric('views')">Просмотры</button>
     <button class="chip-btn ${postMetric==='reach'?'active':''}" onclick="setPostMetric('reach')">Охваты</button>
     <button class="chip-btn ${postMetric==='reactions'?'active':''}" onclick="setPostMetric('reactions')">Реакции</button>
-    <button class="chip-btn ${postMetric==='newSubscribers'?'active':''}" onclick="setPostMetric('newSubscribers')">Подписчики</button>`;
+    ${postPlatformFilter!=='Telegram' ? `<button class="chip-btn ${postMetric==='newSubscribers'?'active':''}" onclick="setPostMetric('newSubscribers')">Подписчики</button>` : ''}`;
 
   const chartEntries = postAnalytics.filter(p=>p.platform===postPlatformFilter && p.date)
     .sort((a,b)=>a.date.localeCompare(b.date));
@@ -2212,7 +2285,7 @@ function renderPostAnalytics(container){
         <div class="metric-item"><div class="metric-item-label">Просмотры</div><input type="number" value="${p.views ?? ''}" onchange="updatePostAnalytics('${p.id}','views',this.value)"></div>
         <div class="metric-item"><div class="metric-item-label">Охваты</div><input type="number" value="${p.reach ?? ''}" onchange="updatePostAnalytics('${p.id}','reach',this.value)"></div>
         <div class="metric-item"><div class="metric-item-label">Реакции</div><input type="number" value="${p.reactions ?? ''}" onchange="updatePostAnalytics('${p.id}','reactions',this.value)"></div>
-        <div class="metric-item"><div class="metric-item-label">Подписчики</div><input type="number" value="${p.newSubscribers ?? ''}" onchange="updatePostAnalytics('${p.id}','newSubscribers',this.value)"></div>
+        ${p.platform!=='Telegram' ? `<div class="metric-item"><div class="metric-item-label">Подписчики</div><input type="number" value="${p.newSubscribers ?? ''}" onchange="updatePostAnalytics('${p.id}','newSubscribers',this.value)"></div>` : ''}
       </div>
     </div>`;
   }
@@ -2239,11 +2312,10 @@ function addAnalyticsEntry(){
   const platform = document.getElementById('an-platform').value;
   const followers = document.getElementById('an-followers').value;
   const reach = document.getElementById('an-reach').value;
-  const er = document.getElementById('an-er').value;
   const note = document.getElementById('an-note').value.trim();
-  if(!date && !followers && !reach && !er && !note) return;
-  analyticsEntries.push({id:uid(), date, platform, followers: followers?Number(followers):null, reach: reach?Number(reach):null, er: er?Number(er):null, note});
-  ['an-date','an-followers','an-reach','an-er','an-note'].forEach(id=>document.getElementById(id).value='');
+  if(!date && !followers && !reach && !note) return;
+  analyticsEntries.push({id:uid(), date, platform, followers: followers?Number(followers):null, reach: reach?Number(reach):null, note});
+  ['an-date','an-followers','an-reach','an-note'].forEach(id=>document.getElementById(id).value='');
   saveData('analytics-entries', analyticsEntries);
   renderAnalytics();
 }
@@ -2251,6 +2323,13 @@ function deleteAnalytics(id){
   analyticsEntries = analyticsEntries.filter(e=>e.id!==id);
   saveData('analytics-entries', analyticsEntries);
   renderAnalytics();
+}
+function togglePaSubsField(){
+  const platform = document.getElementById('pa-platform').value;
+  const subsField = document.getElementById('pa-subs');
+  const isTelegram = platform==='Telegram';
+  subsField.style.display = isTelegram ? 'none' : '';
+  if(isTelegram) subsField.value = '';
 }
 function addPostAnalyticsManual(){
   const topic = document.getElementById('pa-topic').value.trim();
